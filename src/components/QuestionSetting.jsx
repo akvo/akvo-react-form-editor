@@ -10,7 +10,6 @@ import {
   SettingCascade,
   SettingDate,
 } from './question-type';
-import { map, groupBy } from 'lodash';
 
 const QuestionSetting = ({ question, dependant }) => {
   const { id, name, type, variable, tooltip, required, questionGroupId } =
@@ -70,7 +69,7 @@ const QuestionSetting = ({ question, dependant }) => {
       name: d.name,
       questionGroupName: d.questionGroup.name,
       questionGroupId: d.questionGroupId,
-      questionGroupOrder: d.questionGroup.order
+      questionGroupOrder: d.questionGroup.order,
     };
   });
 
@@ -82,16 +81,20 @@ const QuestionSetting = ({ question, dependant }) => {
             <div>
               <b>Dependant Questions:</b>
               {dependantQuestion.map((d) => (
-                <p key={d.questionGroupId}>{d.questionGroupOrder}. {d.questionGroupName}</p>
+                <p key={d.questionGroupId}>
+                  {d.questionGroupOrder}. {d.questionGroupName}
+                </p>
               ))}
               <List
                 className="arfe-dependant-list-box"
                 dataSource={dependantQuestion}
                 renderItem={(item) => {
                   return (
-                    <List.Item key={item.id}>{item.order}. {item.name}</List.Item>
-                  )
-                }}              
+                    <List.Item key={item.id}>
+                      {item.order}. {item.name}
+                    </List.Item>
+                  );
+                }}
               />
             </div>
           }
