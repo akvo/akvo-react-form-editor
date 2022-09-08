@@ -30,7 +30,7 @@ function _extends() {
   return _extends.apply(this, arguments);
 }
 
-var styles = {"container":"arfe-container","form-definition":"arfe-form-definition","input-checkbox-wrapper":"arfe-input-checkbox-wrapper","button-icon":"arfe-button-icon","reorder-wrapper":"arfe-reorder-wrapper","reorder-button":"arfe-reorder-button","select-dropdown":"arfe-select-dropdown","tabs-wrapper":"arfe-tabs-wrapper","right-tabs":"arfe-right-tabs","question-group-title":"arfe-question-group-title","space-align-right":"arfe-space-align-right","space-align-left":"arfe-space-align-left","space-vertical-align-left":"arfe-space-vertical-align-left","space-vertical-align-right":"arfe-space-vertical-align-right","more-question-setting-text":"arfe-more-question-setting-text"};
+var styles = {"container":"arfe-container","form-definition":"arfe-form-definition","input-checkbox-wrapper":"arfe-input-checkbox-wrapper","button-icon":"arfe-button-icon","reorder-wrapper":"arfe-reorder-wrapper","reorder-button":"arfe-reorder-button","select-dropdown":"arfe-select-dropdown","tabs-wrapper":"arfe-tabs-wrapper","right-tabs":"arfe-right-tabs","question-group-title":"arfe-question-group-title","space-align-right":"arfe-space-align-right","space-align-left":"arfe-space-align-left","space-vertical-align-left":"arfe-space-vertical-align-left","space-vertical-align-right":"arfe-space-vertical-align-right","more-question-setting-text":"arfe-more-question-setting-text","dependant-list-box":"arfe-dependant-list-box"};
 
 var FormWrapper = function FormWrapper(_ref) {
   var children = _ref.children;
@@ -6983,17 +6983,17 @@ var QuestionSetting = function QuestionSetting(_ref) {
   };
 
   return /*#__PURE__*/React__default.createElement("div", null, !!dependant.length && /*#__PURE__*/React__default.createElement(antd.Alert, {
-    message: "Dependent Questions:",
-    description: /*#__PURE__*/React__default.createElement("ul", null, dependant.map(function (d, di) {
+    message: /*#__PURE__*/React__default.createElement("div", null, "Dependant Questions:", /*#__PURE__*/React__default.createElement("ul", {
+      className: "arfe-dependant-list-box"
+    }, dependant.map(function (d, di) {
       return /*#__PURE__*/React__default.createElement("li", {
         key: di
-      }, d.name);
-    })),
+      }, d.order, ". ", d.name);
+    }))),
     type: "info",
     style: {
-      marginBottom: '20px'
-    },
-    showIcon: true
+      marginBottom: 24
+    }
   }), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: UIText.inputQuestionNameLabel,
     initialValue: name,
@@ -8434,81 +8434,73 @@ var CardExtraButton = function CardExtraButton(_ref) {
       onCancel = _ref$onCancel === void 0 ? function () {} : _ref$onCancel,
       _ref$disabled = _ref.disabled,
       disabled = _ref$disabled === void 0 ? false : _ref$disabled;
+  var buttonProps = {};
 
   switch (type) {
     case 'show-button':
       if (isExpand) {
-        return /*#__PURE__*/React__default.createElement(antd.Button, {
-          type: "link",
-          className: styles['button-icon'],
+        buttonProps = {
           onClick: onCancel,
-          icon: /*#__PURE__*/React__default.createElement(tb.TbEditOff, null),
-          disabled: disabled
-        });
+          icon: /*#__PURE__*/React__default.createElement(tb.TbEditOff, null)
+        };
+        break;
       }
 
-      return /*#__PURE__*/React__default.createElement(antd.Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: onClick,
-        icon: /*#__PURE__*/React__default.createElement(tb.TbEdit, null),
-        disabled: disabled
-      });
+        icon: /*#__PURE__*/React__default.createElement(tb.TbEdit, null)
+      };
+      break;
 
     case 'move-button':
-      return /*#__PURE__*/React__default.createElement(antd.Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: onClick,
-        disabled: disabled,
         icon: /*#__PURE__*/React__default.createElement(bi.BiMove, null)
-      });
+      };
+      break;
 
     case 'edit-button':
       if (isExpand) {
-        return /*#__PURE__*/React__default.createElement(antd.Button, {
-          type: "link",
-          className: styles['button-icon'],
+        buttonProps = {
           onClick: onCancel,
-          icon: /*#__PURE__*/React__default.createElement(ri.RiSettings5Fill, null),
-          disabled: disabled
-        });
+          icon: /*#__PURE__*/React__default.createElement(ri.RiSettings5Fill, null)
+        };
+        break;
       }
 
-      return /*#__PURE__*/React__default.createElement(antd.Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: onClick,
-        icon: /*#__PURE__*/React__default.createElement(ri.RiSettings5Line, null),
-        disabled: disabled
-      });
+        icon: /*#__PURE__*/React__default.createElement(ri.RiSettings5Line, null)
+      };
+      break;
 
     case 'add-button':
-      return /*#__PURE__*/React__default.createElement(antd.Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: onClick,
-        icon: /*#__PURE__*/React__default.createElement(md.MdOutlineAddCircleOutline, null),
-        disabled: disabled
-      });
+        icon: /*#__PURE__*/React__default.createElement(md.MdOutlineAddCircleOutline, null)
+      };
+      break;
 
     case 'save-button':
-      return /*#__PURE__*/React__default.createElement(antd.Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: onClick,
         icon: /*#__PURE__*/React__default.createElement(ri.RiSave3Fill, null)
-      });
+      };
+      break;
 
     default:
-      return /*#__PURE__*/React__default.createElement(antd.Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: onClick,
-        icon: /*#__PURE__*/React__default.createElement(ri.RiDeleteBin2Line, null),
-        disabled: disabled
-      });
+        icon: /*#__PURE__*/React__default.createElement(ri.RiDeleteBin2Line, null)
+      };
+      break;
   }
+
+  return /*#__PURE__*/React__default.createElement(antd.Button, _extends({
+    type: "link",
+    className: styles['button-icon'],
+    disabled: disabled
+  }, buttonProps));
 };
 
 var CardTitle = function CardTitle(_ref) {

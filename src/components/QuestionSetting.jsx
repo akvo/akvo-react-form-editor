@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Select, Checkbox, Alert } from 'antd';
+import { Form, Input, Select, Checkbox, Alert, List } from 'antd';
 import styles from '../styles.module.css';
 import { UIStore, questionType, questionGroupFn } from '../lib/store';
 import {
@@ -10,6 +10,7 @@ import {
   SettingCascade,
   SettingDate,
 } from './question-type';
+import { map, groupBy } from 'lodash';
 
 const QuestionSetting = ({ question, dependant }) => {
   const { id, name, type, variable, tooltip, required, questionGroupId } =
@@ -62,20 +63,36 @@ const QuestionSetting = ({ question, dependant }) => {
     updateState('required', e?.target?.checked);
   };
 
+  const dependantQuestion = dependant.map((d) => {
+    return {
+      id: d.id,
+      order: d.order,
+      name: d.name,
+      questionGroupName: d.questionGroup.name,
+      questionGroupId: d.questionGroupId,
+      questionGroupOrder: d.questionGroup.order
+    };
+  });
+
   return (
     <div>
       {!!dependant.length && (
         <Alert
           message={
             <div>
-              Dependant Questions:
-              <ul className="arfe-dependant-list-box">
-                {dependant.map((d, di) => (
-                  <li key={di}>
-                    {d.order}. {d.name}
-                  </li>
-                ))}
-              </ul>
+              <b>Dependant Questions:</b>
+              {dependantQuestion.map((d) => (
+                <p key={d.questionGroupId}>{d.questionGroupOrder}. {d.questionGroupName}</p>
+              ))}
+              <List
+                className="arfe-dependant-list-box"
+                dataSource={dependantQuestion}
+                renderItem={(item) => {
+                  return (
+                    <List.Item key={item.id}>{item.order}. {item.name}</List.Item>
+                  )
+                }}              
+              />
             </div>
           }
           type="info"

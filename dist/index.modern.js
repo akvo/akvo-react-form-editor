@@ -10,7 +10,7 @@ import { TbEditOff, TbEdit } from 'react-icons/tb';
 import { RiDeleteBin2Line, RiSave3Fill, RiSettings5Fill, RiSettings5Line } from 'react-icons/ri';
 import { BiMove } from 'react-icons/bi';
 
-var styles = {"container":"arfe-container","form-definition":"arfe-form-definition","input-checkbox-wrapper":"arfe-input-checkbox-wrapper","button-icon":"arfe-button-icon","reorder-wrapper":"arfe-reorder-wrapper","reorder-button":"arfe-reorder-button","select-dropdown":"arfe-select-dropdown","tabs-wrapper":"arfe-tabs-wrapper","right-tabs":"arfe-right-tabs","question-group-title":"arfe-question-group-title","space-align-right":"arfe-space-align-right","space-align-left":"arfe-space-align-left","space-vertical-align-left":"arfe-space-vertical-align-left","space-vertical-align-right":"arfe-space-vertical-align-right","more-question-setting-text":"arfe-more-question-setting-text"};
+var styles = {"container":"arfe-container","form-definition":"arfe-form-definition","input-checkbox-wrapper":"arfe-input-checkbox-wrapper","button-icon":"arfe-button-icon","reorder-wrapper":"arfe-reorder-wrapper","reorder-button":"arfe-reorder-button","select-dropdown":"arfe-select-dropdown","tabs-wrapper":"arfe-tabs-wrapper","right-tabs":"arfe-right-tabs","question-group-title":"arfe-question-group-title","space-align-right":"arfe-space-align-right","space-align-left":"arfe-space-align-left","space-vertical-align-left":"arfe-space-vertical-align-left","space-vertical-align-right":"arfe-space-vertical-align-right","more-question-setting-text":"arfe-more-question-setting-text","dependant-list-box":"arfe-dependant-list-box"};
 
 const FormWrapper = ({
   children
@@ -6897,15 +6897,15 @@ const QuestionSetting = ({
   };
 
   return /*#__PURE__*/React__default.createElement("div", null, !!dependant.length && /*#__PURE__*/React__default.createElement(Alert, {
-    message: "Dependent Questions:",
-    description: /*#__PURE__*/React__default.createElement("ul", null, dependant.map((d, di) => /*#__PURE__*/React__default.createElement("li", {
+    message: /*#__PURE__*/React__default.createElement("div", null, "Dependant Questions:", /*#__PURE__*/React__default.createElement("ul", {
+      className: "arfe-dependant-list-box"
+    }, dependant.map((d, di) => /*#__PURE__*/React__default.createElement("li", {
       key: di
-    }, d.name))),
+    }, d.order, ". ", d.name)))),
     type: "info",
     style: {
-      marginBottom: '20px'
-    },
-    showIcon: true
+      marginBottom: 24
+    }
   }), /*#__PURE__*/React__default.createElement(Form.Item, {
     label: UIText.inputQuestionNameLabel,
     initialValue: name,
@@ -8333,80 +8333,73 @@ const CardExtraButton = ({
   onCancel: _onCancel = () => {},
   disabled: _disabled = false
 }) => {
+  let buttonProps = {};
+
   switch (_type) {
     case 'show-button':
       if (_isExpand) {
-        return /*#__PURE__*/React__default.createElement(Button, {
-          type: "link",
-          className: styles['button-icon'],
+        buttonProps = {
           onClick: _onCancel,
-          icon: /*#__PURE__*/React__default.createElement(TbEditOff, null),
-          disabled: _disabled
-        });
+          icon: /*#__PURE__*/React__default.createElement(TbEditOff, null)
+        };
+        break;
       }
 
-      return /*#__PURE__*/React__default.createElement(Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: _onClick,
-        icon: /*#__PURE__*/React__default.createElement(TbEdit, null),
-        disabled: _disabled
-      });
+        icon: /*#__PURE__*/React__default.createElement(TbEdit, null)
+      };
+      break;
 
     case 'move-button':
-      return /*#__PURE__*/React__default.createElement(Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: _onClick,
-        disabled: _disabled,
         icon: /*#__PURE__*/React__default.createElement(BiMove, null)
-      });
+      };
+      break;
 
     case 'edit-button':
       if (_isExpand) {
-        return /*#__PURE__*/React__default.createElement(Button, {
-          type: "link",
-          className: styles['button-icon'],
+        buttonProps = {
           onClick: _onCancel,
-          icon: /*#__PURE__*/React__default.createElement(RiSettings5Fill, null),
-          disabled: _disabled
-        });
+          icon: /*#__PURE__*/React__default.createElement(RiSettings5Fill, null)
+        };
+        break;
       }
 
-      return /*#__PURE__*/React__default.createElement(Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: _onClick,
-        icon: /*#__PURE__*/React__default.createElement(RiSettings5Line, null),
-        disabled: _disabled
-      });
+        icon: /*#__PURE__*/React__default.createElement(RiSettings5Line, null)
+      };
+      break;
 
     case 'add-button':
-      return /*#__PURE__*/React__default.createElement(Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: _onClick,
-        icon: /*#__PURE__*/React__default.createElement(MdOutlineAddCircleOutline, null),
-        disabled: _disabled
-      });
+        icon: /*#__PURE__*/React__default.createElement(MdOutlineAddCircleOutline, null)
+      };
+      break;
 
     case 'save-button':
-      return /*#__PURE__*/React__default.createElement(Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: _onClick,
         icon: /*#__PURE__*/React__default.createElement(RiSave3Fill, null)
-      });
+      };
+      break;
 
     default:
-      return /*#__PURE__*/React__default.createElement(Button, {
-        type: "link",
-        className: styles['button-icon'],
+      buttonProps = {
         onClick: _onClick,
-        icon: /*#__PURE__*/React__default.createElement(RiDeleteBin2Line, null),
-        disabled: _disabled
-      });
+        icon: /*#__PURE__*/React__default.createElement(RiDeleteBin2Line, null)
+      };
+      break;
   }
+
+  return /*#__PURE__*/React__default.createElement(Button, Object.assign({
+    type: "link",
+    className: styles['button-icon'],
+    disabled: _disabled
+  }, buttonProps));
 };
 
 const CardTitle = ({
