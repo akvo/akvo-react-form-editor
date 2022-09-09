@@ -87,6 +87,7 @@ const QuestionSetting = ({ question, dependant }) => {
         <Alert
           message={
             <div>
+              <b>Dependant Questions:</b>
               {formatDependancies().map((d) => {
                 return (
                   <div key={d.id}>
