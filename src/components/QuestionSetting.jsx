@@ -55,7 +55,12 @@ const QuestionSetting = ({ question, dependant }) => {
   };
 
   const handleChangeTooltip = (e) => {
-    updateState('tooltip', e?.target?.value);
+    const value = e?.target?.value;
+    if (value) {
+      updateState('tooltip', { ...tooltip, text: value });
+    } else {
+      updateState('tooltip', null);
+    }
   };
 
   const handleChangeRequired = (e) => {
@@ -154,7 +159,7 @@ const QuestionSetting = ({ question, dependant }) => {
       </Form.Item>
       <Form.Item
         label={UIText.inputQuestionTooltipLabel}
-        initialValue={tooltip}
+        initialValue={tooltip?.text}
         name={`${namePreffix}-tooltip`}
       >
         <Input.TextArea onChange={handleChangeTooltip} />

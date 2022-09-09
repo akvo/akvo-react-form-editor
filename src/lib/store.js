@@ -1,6 +1,15 @@
 import { Store } from 'pullstate';
 import UIStaticText from './i18n';
 import { dummyName } from './debug';
+import * as locale from 'locale-codes';
+import uniqBy from 'lodash/uniqBy';
+
+const localeDropdownValue = uniqBy(
+  locale.all
+    .filter((x) => x.location)
+    .map((x) => ({ label: x.name, value: x['iso639-1'] })),
+  'value'
+);
 
 const generateId = () => new Date().getTime();
 
@@ -12,12 +21,11 @@ const questionType = {
   date: 'date',
   option: 'option',
   multiple_option: 'multiple_option',
-  tree: 'tree',
-  autofield: 'autofield',
+  // tree: 'tree',
+  // autofield: 'autofield',
 };
 
 const defaultQuestion = ({
-  id,
   questionGroup,
   name,
   prevOrder = 0,
@@ -25,21 +33,19 @@ const defaultQuestion = ({
   params = {},
 }) => {
   const q = {
-    id: id || generateId(),
+    id: generateId(),
+    order: prevOrder + 1,
     questionGroupId: questionGroup.id,
     name: name || dummyName(5),
-    order: prevOrder + 1,
     type: type,
     required: false,
     tooltip: null,
-    ...params,
   };
   if (type === questionType.option || type === questionType.multiple_option) {
     return {
       ...q,
       options: [],
       allowOther: false,
-      ...params,
     };
   }
   if (type === questionType.cascade) {
@@ -50,10 +56,9 @@ const defaultQuestion = ({
         initial: 0,
         list: false,
       },
-      ...params,
     };
   }
-  return q;
+  return { ...q, ...params };
 };
 
 const defaultQuestionGroup = ({ name = dummyName(), prevOrder = 0 }) => {
@@ -81,9 +86,16 @@ const UIStore = new Store({
   activeQuestionGroups: [],
   activeEditQuestionGroups: [],
   activeMoveQuestionGroup: null,
+  isCopyingQuestionGroup: false,
   activeEditQuestions: [],
   activeMoveQuestion: null,
+  isCopyingQuestion: false,
   UIText: UIStaticText.en,
+  localeDropdownValue: localeDropdownValue,
+  existingTranslation: null,
+  activeTranslationQuestionGroups: [],
+  activeEditTranslationQuestionGroups: [],
+  activeEditTranslationQuestions: [],
 });
 
 const FormStore = new Store({
