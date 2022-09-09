@@ -10,7 +10,6 @@ import {
   SettingCascade,
   SettingDate,
 } from './question-type';
-import { groupBy, map } from 'lodash';
 
 const QuestionSetting = ({ question, dependant }) => {
   const { id, name, type, variable, tooltip, required, questionGroupId } =
@@ -64,21 +63,21 @@ const QuestionSetting = ({ question, dependant }) => {
   };
 
   const formatDependancies = () => {
-    const depQussetIds = dependant.map(d => d.id);
+    const depQussetIds = dependant.map((d) => d.id);
 
     const depGroup = dependant.reduce((acc, curr) => {
-        if (!acc.find(d => d.id === curr.questionGroup.id)) {
-            acc.push(curr.questionGroup);
-        }
-        return acc;
+      if (!acc.find((d) => d.id === curr.questionGroup.id)) {
+        acc.push(curr.questionGroup);
+      }
+      return acc;
     }, []);
 
-    const groupsDeps = depGroup.map(dep => {
-        return {
-            ...dep,
-            questions: dep.questions.filter(q => depQussetIds.includes(q.id)),
-        }
-    })
+    const groupsDeps = depGroup.map((dep) => {
+      return {
+        ...dep,
+        questions: dep.questions.filter((q) => depQussetIds.includes(q.id)),
+      };
+    });
     return groupsDeps;
   };
 
@@ -88,37 +87,32 @@ const QuestionSetting = ({ question, dependant }) => {
         <Alert
           message={
             <div>
-              {
-                formatDependancies().map((d) => {
-                  return (
-                    <div key={d.id}>
-                      <div>
-                        {d.order}. {d.name}
-                      </div>
-                      <List
-                        className="arfe-dependant-list-box"
-                        dataSource={d.questions}
-                        renderItem={(item) => {
-                          return (
-                            <List.Item
-                              key={item.id}
-                              style={
-                                {
-                                  padding: 0,
-                                  paddingInlineStart: "10px",
-                                }
-                              }  
-                            >
-
-                              {item.order}. {item.name}
-                            </List.Item>
-                          );
-                        }}
-                      />
+              {formatDependancies().map((d) => {
+                return (
+                  <div key={d.id}>
+                    <div>
+                      {d.order}. {d.name}
                     </div>
-                  )
-                })
-              }
+                    <List
+                      className="arfe-dependant-list-box"
+                      dataSource={d.questions}
+                      renderItem={(item) => {
+                        return (
+                          <List.Item
+                            key={item.id}
+                            style={{
+                              padding: 0,
+                              paddingInlineStart: '10px',
+                            }}
+                          >
+                            {item.order}. {item.name}
+                          </List.Item>
+                        );
+                      }}
+                    />
+                  </div>
+                );
+              })}
             </div>
           }
           type="info"
