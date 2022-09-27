@@ -51,9 +51,7 @@
     "predeploy": "cd example && yarn install && yarn run build",
     "deploy": "gh-pages -d example/build"
   },
-  "resolutions": {
-    "autoprefixer": "9.0.0"
-  },
+  "resolutions": {},
   "peerDependencies": {},
   "devDependencies": {
     "@babel/core": "^7.18.13",
