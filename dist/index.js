@@ -38,6 +38,21 @@ function _extends() {
   return _extends.apply(this, arguments);
 }
 
+function _inheritsLoose(subClass, superClass) {
+  subClass.prototype = Object.create(superClass.prototype);
+  subClass.prototype.constructor = subClass;
+
+  _setPrototypeOf(subClass, superClass);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+  return _setPrototypeOf(o, p);
+}
+
 function _objectWithoutPropertiesLoose(source, excluded) {
   if (source == null) return {};
   var target = {};
@@ -3296,6 +3311,56 @@ var FormTranslations = function FormTranslations() {
   })));
 };
 
+var Text$1 = antd.Typography.Text;
+
+var PreviewErrorBoundary = /*#__PURE__*/function (_React$Component) {
+  _inheritsLoose(PreviewErrorBoundary, _React$Component);
+
+  function PreviewErrorBoundary(props) {
+    var _this;
+
+    _this = _React$Component.call(this, props) || this;
+    _this.state = {
+      error: null
+    };
+    return _this;
+  }
+
+  PreviewErrorBoundary.getDerivedStateFromError = function getDerivedStateFromError(error) {
+    return {
+      error: error
+    };
+  };
+
+  var _proto = PreviewErrorBoundary.prototype;
+
+  _proto.render = function render() {
+    if (this.state.error) {
+      return /*#__PURE__*/React__default.createElement(antd.Alert, {
+        type: "error",
+        message: "Preview could not be rendered",
+        description: /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement(Text$1, null, "Some question config may be incomplete. Fix the issues below and switch back to Preview to retry."), /*#__PURE__*/React__default.createElement("pre", {
+          style: {
+            marginTop: 12,
+            padding: 12,
+            background: '#fff1f0',
+            border: '1px solid #ffa39e',
+            borderRadius: 4,
+            fontSize: 12,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word'
+          }
+        }, this.state.error.toString(), this.state.error.stack ? "\n\n" + this.state.error.stack : '')),
+        showIcon: true
+      });
+    }
+
+    return this.props.children;
+  };
+
+  return PreviewErrorBoundary;
+}(React__default.Component);
+
 var FormPreview = function FormPreview() {
   var _questionGroupFn$stor = questionGroupFn.store.useState(function (s) {
     return s;
@@ -3305,9 +3370,12 @@ var FormPreview = function FormPreview() {
   var formStore = formFn.store.useState(function (s) {
     return s;
   });
-  return /*#__PURE__*/React__default.createElement(akvoReactForm.Webform, {
-    forms: data.toWebform(formStore, questionGroups)
-  });
+  var forms = data.toWebform(formStore, questionGroups);
+  return /*#__PURE__*/React__default.createElement(PreviewErrorBoundary, {
+    key: JSON.stringify(forms)
+  }, /*#__PURE__*/React__default.createElement(akvoReactForm.Webform, {
+    forms: forms
+  }));
 };
 
 var FormDefinition = function FormDefinition(_ref) {
@@ -3360,7 +3428,7 @@ var FormDefinition = function FormDefinition(_ref) {
   })));
 };
 
-var Text$1 = antd.Typography.Text;
+var Text$2 = antd.Typography.Text;
 
 var QuestionGroupSetting = function QuestionGroupSetting(_ref) {
   var id = _ref.id,
@@ -3577,7 +3645,7 @@ var QuestionGroupSetting = function QuestionGroupSetting(_ref) {
     value: nameFieldValue
   })), currentGroupError !== null && currentGroupError !== void 0 && currentGroupError.id ? /*#__PURE__*/React__default.createElement("div", {
     className: styles['field-error-wrapper']
-  }, /*#__PURE__*/React__default.createElement(Text$1, {
+  }, /*#__PURE__*/React__default.createElement(Text$2, {
     type: "danger"
   }, currentGroupError.message)) : '', /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: UIText.inputQuestionGroupDescriptionLabel,
@@ -11085,7 +11153,7 @@ var SettingImage = function SettingImage(_ref) {
 var fnStringExample = "Search question_name by typing #\nExample format below:\n#question_name# / #question_name#\nOR\n#question_name#.includes('Test') ? #question_name# / #question_name# : 0 }";
 var fnColorExample = "{ 'answer_value': '#CCFFC4' }";
 var allowedQuestionTypes$1 = [questionType.input, questionType.number, questionType.text, questionType.option, questionType.multiple_option, questionType.autofield];
-var Text$2 = antd.Typography.Text;
+var Text$3 = antd.Typography.Text;
 
 var SettingAutofield = function SettingAutofield(_ref) {
   var id = _ref.id,
@@ -11365,11 +11433,11 @@ var SettingAutofield = function SettingAutofield(_ref) {
     ghost: true
   }, UIText.evaluatefnStringButton), (currentAutofieldFnStringError === null || currentAutofieldFnStringError === void 0 ? void 0 : currentAutofieldFnStringError.id) && /*#__PURE__*/React__default.createElement(antd.Space, null, /*#__PURE__*/React__default.createElement(CloseCircleTwoTone$2, {
     twoToneColor: "#ff4d4f"
-  }), /*#__PURE__*/React__default.createElement(Text$2, {
+  }), /*#__PURE__*/React__default.createElement(Text$3, {
     type: "danger"
   }, currentAutofieldFnStringError.message)), isCorrect && /*#__PURE__*/React__default.createElement(antd.Space, null, /*#__PURE__*/React__default.createElement(CheckCircleTwoTone$2, {
     twoToneColor: '#52c41a'
-  }), /*#__PURE__*/React__default.createElement(Text$2, {
+  }), /*#__PURE__*/React__default.createElement(Text$3, {
     type: "success"
   }, UIText.evaluatefnStringSuccess))), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: UIText.inputQuestionAutofieldFnColor,
@@ -11840,7 +11908,7 @@ var QuestionStats = function QuestionStats(_ref) {
 };
 
 var questionTypeWithRule = ['number', 'date'];
-var Text$3 = antd.Typography.Text;
+var Text$4 = antd.Typography.Text;
 
 var QuestionSetting = function QuestionSetting(_ref) {
   var question = _ref.question,
@@ -12184,7 +12252,7 @@ var QuestionSetting = function QuestionSetting(_ref) {
     value: nameFieldValue
   })), currentQuestionNameError !== null && currentQuestionNameError !== void 0 && currentQuestionNameError.id ? /*#__PURE__*/React__default.createElement("div", {
     className: styles['field-error-wrapper']
-  }, /*#__PURE__*/React__default.createElement(Text$3, {
+  }, /*#__PURE__*/React__default.createElement(Text$4, {
     type: "danger"
   }, currentQuestionNameError.message)) : '', /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: /*#__PURE__*/React__default.createElement(antd.Space, {
