@@ -1,5 +1,14 @@
 import React, { useMemo } from 'react';
-import { Form, Row, Col, Input, InputNumber, Select } from 'antd';
+import {
+  Form,
+  Row,
+  Col,
+  Input,
+  InputNumber,
+  Select,
+  Checkbox,
+  Space,
+} from 'antd';
 import styles from '../../styles.module.css';
 import { UIStore, questionGroupFn } from '../../lib/store';
 
@@ -11,15 +20,31 @@ const SettingCascade = ({
     initial: 0,
     list: false,
   },
+  partialRequired,
+  entityExtra,
 }) => {
   const namePreffix = `question-${id}`;
   const { UIText, hostParams } = UIStore.useState((s) => s);
   const settingCascadeURL = hostParams?.settingCascadeURL;
   const form = Form.useFormInstance();
+  const questionGroups = questionGroupFn.store.useState(
+    (s) => s.questionGroups
+  );
 
   const cascadeURLDropdownValue = useMemo(() => {
     return settingCascadeURL.map((x) => ({ label: x.name, value: x.id }));
   }, [settingCascadeURL]);
+
+  const allQuestionsDropdownValue = useMemo(() => {
+    return questionGroups.flatMap((qg) =>
+      qg.questions.map((q) => ({
+        label: `${qg.order}.${q.order}. ${q.label || q.name}`,
+        value: q.id,
+      }))
+    );
+  }, [questionGroups]);
+
+  const entityConfigEnabled = !!entityExtra;
 
   const updateGlobalState = (values = {}) => {
     questionGroupFn.store.update((s) => {
@@ -64,6 +89,65 @@ const SettingCascade = ({
 
   const handleChangeInitial = (e) => {
     updateGlobalState({ initial: e });
+  };
+
+  const handleChangePartialRequired = (e) => {
+    questionGroupFn.store.update((s) => {
+      s.questionGroups = s.questionGroups.map((qg) => {
+        if (qg.id === questionGroupId) {
+          const questions = qg.questions.map((q) => {
+            if (q.id === id) {
+              return { ...q, partialRequired: e?.target?.checked };
+            }
+            return q;
+          });
+          return { ...qg, questions };
+        }
+        return qg;
+      });
+    });
+  };
+
+  const handleToggleEntityConfig = (e) => {
+    questionGroupFn.store.update((s) => {
+      s.questionGroups = s.questionGroups.map((qg) => {
+        if (qg.id === questionGroupId) {
+          const questions = qg.questions.map((q) => {
+            if (q.id === id) {
+              if (e?.target?.checked) {
+                return { ...q, entityExtra: { name: '', parentId: null } };
+              }
+              const next = { ...q };
+              delete next.entityExtra;
+              return next;
+            }
+            return q;
+          });
+          return { ...qg, questions };
+        }
+        return qg;
+      });
+    });
+  };
+
+  const handleChangeEntityField = (field, value) => {
+    questionGroupFn.store.update((s) => {
+      s.questionGroups = s.questionGroups.map((qg) => {
+        if (qg.id === questionGroupId) {
+          const questions = qg.questions.map((q) => {
+            if (q.id === id) {
+              return {
+                ...q,
+                entityExtra: { ...q.entityExtra, [field]: value },
+              };
+            }
+            return q;
+          });
+          return { ...qg, questions };
+        }
+        return qg;
+      });
+    });
   };
 
   return (
@@ -116,6 +200,57 @@ const SettingCascade = ({
           </Form.Item>
         </Col>
       </Row>
+      <Space className={styles['space-align-left']}>
+        <Form.Item name={`${namePreffix}-partial_required`}>
+          <Checkbox
+            onChange={handleChangePartialRequired}
+            checked={partialRequired}
+          >
+            {' '}
+            {UIText.inputPartialRequiredCheckbox}
+          </Checkbox>
+        </Form.Item>
+        <Form.Item name={`${namePreffix}-entity_config`}>
+          <Checkbox
+            onChange={handleToggleEntityConfig}
+            checked={entityConfigEnabled}
+          >
+            {' '}
+            {UIText.inputEntityConfigToggleCheckbox}
+          </Checkbox>
+        </Form.Item>
+      </Space>
+      {entityConfigEnabled && (
+        <div>
+          <Form.Item
+            label={UIText.inputEntityNameLabel}
+            name={`${namePreffix}-entity_name`}
+            initialValue={entityExtra?.name}
+          >
+            <Input
+              onChange={(e) =>
+                handleChangeEntityField('name', e?.target?.value)
+              }
+              allowClear
+            />
+          </Form.Item>
+          <Form.Item
+            label={UIText.inputEntityParentIdLabel}
+            name={`${namePreffix}-entity_parent_id`}
+            initialValue={entityExtra?.parentId}
+          >
+            <Select
+              showSearch
+              className={styles['select-dropdown']}
+              optionFilterProp="label"
+              options={allQuestionsDropdownValue}
+              getPopupContainer={(triggerNode) => triggerNode.parentElement}
+              onChange={(e) => handleChangeEntityField('parentId', e)}
+              allowClear
+            />
+          </Form.Item>
+        </div>
+      )}
     </div>
   );
 };
