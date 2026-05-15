@@ -20,6 +20,8 @@ const questionType = {
   number: 'number',
   cascade: 'cascade',
   geo: 'geo',
+  geotrace: 'geotrace',
+  geoshape: 'geoshape',
   text: 'text',
   date: 'date',
   option: 'option',
@@ -28,6 +30,8 @@ const questionType = {
   table: 'table',
   image: 'image',
   autofield: 'autofield',
+  signature: 'signature',
+  attachment: 'attachment',
 };
 
 const defaultForm = () => {

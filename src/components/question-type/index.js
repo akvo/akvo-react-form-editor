@@ -7,3 +7,5 @@ export { default as SettingDate } from './SettingDate';
 export { default as SettingTable } from './SettingTable';
 export { default as SettingImage } from './SettingImage';
 export { default as SettingAutofield } from './SettingAutofield';
+export { default as SettingGeo } from './SettingGeo';
+export { default as SettingAttachment } from './SettingAttachment';

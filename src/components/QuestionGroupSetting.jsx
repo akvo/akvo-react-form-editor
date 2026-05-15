@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Form, Input, Checkbox, Row, Col, Typography } from 'antd';
+import { Form, Input, Checkbox, Row, Col, Typography, Select } from 'antd';
 import styles from '../styles.module.css';
 import { UIStore, questionGroupFn, ErrorStore } from '../lib/store';
 import snakeCase from 'lodash/snakeCase';
@@ -13,14 +13,26 @@ const QuestionGroupSetting = ({
   description,
   repeatable,
   repeatText,
+  leading_question,
+  show_repeat_in_question_level,
 }) => {
   const namePreffix = `question_group-${id}`;
   const UIText = UIStore.useState((s) => s.UIText);
-  const [nameFieldValue, setNameFieldValue] = useState(
-    name ? snakeCase(name) : snakeCase(label)
-  );
   const questionGroups = questionGroupFn.store.useState(
     (s) => s.questionGroups
+  );
+
+  const allQuestionsDropdownValue = useMemo(() => {
+    return questionGroups.flatMap((qg) =>
+      qg.questions.map((q) => ({
+        label: `${qg.order}.${q.order}. ${q.label || q.name}`,
+        value: q.id,
+      }))
+    );
+  }, [questionGroups]);
+
+  const [nameFieldValue, setNameFieldValue] = useState(
+    name ? snakeCase(name) : snakeCase(label)
   );
   const questionGroupErrors = ErrorStore.useState((s) => s.questionGroupErrors);
 
@@ -127,6 +139,28 @@ const QuestionGroupSetting = ({
     });
   };
 
+  const handleChangeLeadingQuestion = (value) => {
+    questionGroupFn.store.update((s) => {
+      s.questionGroups = s.questionGroups.map((x) => {
+        if (x.id === id) {
+          return { ...x, leading_question: value };
+        }
+        return x;
+      });
+    });
+  };
+
+  const handleChangeShowRepeatInQuestionLevel = (e) => {
+    questionGroupFn.store.update((s) => {
+      s.questionGroups = s.questionGroups.map((x) => {
+        if (x.id === id) {
+          return { ...x, show_repeat_in_question_level: e?.target?.checked };
+        }
+        return x;
+      });
+    });
+  };
+
   return (
     <div>
       <Form.Item
@@ -203,6 +237,37 @@ const QuestionGroupSetting = ({
           </Col>
         )}
       </Row>
+      {repeatable && (
+        <div>
+          <Form.Item
+            label={UIText.inputLeadingQuestionLabel}
+            name={`${namePreffix}-leading_question`}
+            initialValue={leading_question}
+          >
+            <Select
+              showSearch
+              className={styles['select-dropdown']}
+              optionFilterProp="label"
+              options={allQuestionsDropdownValue}
+              getPopupContainer={(triggerNode) => triggerNode.parentElement}
+              onChange={handleChangeLeadingQuestion}
+              allowClear
+            />
+          </Form.Item>
+          <Form.Item
+            name={`${namePreffix}-show_repeat_in_question_level`}
+            className={styles['input-checkbox-wrapper']}
+          >
+            <Checkbox
+              onChange={handleChangeShowRepeatInQuestionLevel}
+              checked={show_repeat_in_question_level}
+            >
+              {' '}
+              {UIText.inputShowRepeatInQuestionLevelCheckbox}
+            </Checkbox>
+          </Form.Item>
+        </div>
+      )}
     </div>
   );
 };

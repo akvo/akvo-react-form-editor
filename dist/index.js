@@ -38,6 +38,36 @@ function _extends() {
   return _extends.apply(this, arguments);
 }
 
+function _inheritsLoose(subClass, superClass) {
+  subClass.prototype = Object.create(superClass.prototype);
+  subClass.prototype.constructor = subClass;
+
+  _setPrototypeOf(subClass, superClass);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+  return _setPrototypeOf(o, p);
+}
+
+function _objectWithoutPropertiesLoose(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i;
+
+  for (i = 0; i < sourceKeys.length; i++) {
+    key = sourceKeys[i];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
+  }
+
+  return target;
+}
+
 var styles = {"container":"arfe-container","form-definition":"arfe-form-definition","form-item-no-bottom-margin":"arfe-form-item-no-bottom-margin","input-checkbox-wrapper":"arfe-input-checkbox-wrapper","button-icon":"arfe-button-icon","reorder-wrapper":"arfe-reorder-wrapper","reorder-button":"arfe-reorder-button","select-dropdown":"arfe-select-dropdown","tabs-wrapper":"arfe-tabs-wrapper","tabs-wrapper-sticky":"arfe-tabs-wrapper-sticky","right-tabs":"arfe-right-tabs","tab-pane-name-icon":"arfe-tab-pane-name-icon","question-group-title":"arfe-question-group-title","space-align-right":"arfe-space-align-right","space-align-left":"arfe-space-align-left","space-vertical-align-left":"arfe-space-vertical-align-left","space-vertical-align-right":"arfe-space-vertical-align-right","more-question-setting-text":"arfe-more-question-setting-text","dependant-list-box":"arfe-dependant-list-box","tags":"arfe-tags","tags-active":"arfe-tags-active","translation-form-item":"arfe-translation-form-item","translation-form-item-card":"arfe-translation-form-item-card","field-error-wrapper":"arfe-field-error-wrapper"};
 
 var FormWrapper = function FormWrapper(_ref) {
@@ -186,7 +216,25 @@ var UIStaticText = {
     addonBefore: 'AddonBefore',
     addonBeforePlaceholder: 'e.g., +62 or other required prefixes',
     addonAfter: 'AddonAfter',
-    addonAfterPlaceholder: 'e.g., Kilogram, Unit, or any other necessary suffix.'
+    addonAfterPlaceholder: 'e.g., Kilogram, Unit, or any other necessary suffix.',
+    inputLeadingQuestionLabel: 'Leading Question',
+    inputShowRepeatInQuestionLevelCheckbox: 'Show Repeat in Question Level',
+    inputQuestionDisabledCheckbox: 'Disabled',
+    inputQuestionIsRepeatIdentifierCheckbox: 'Repeat Identifier',
+    inputDependencyRuleLabel: 'Dependency Rule',
+    questionMoreGeoSettingText: 'Set the default map center (optional)',
+    inputGeoLatitudeLabel: 'Latitude',
+    inputGeoLongitudeLabel: 'Longitude',
+    questionMoreAttachmentSettingText: 'More Attachment Question Setting',
+    inputAllowedFileTypesLabel: 'Allowed File Types',
+    inputAttachmentEndpointLabel: 'Attachment Endpoint',
+    inputAttachmentResponseKeyLabel: 'Attachment Response Key',
+    inputEntityConfigToggleCheckbox: 'Enable Entity Config',
+    inputEntityNameLabel: 'Entity Name',
+    inputEntityParentIdLabel: 'Entity Parent ID',
+    inputPartialRequiredCheckbox: 'Partial Required',
+    inputCheckStrategyLabel: 'Check Strategy',
+    inputExpandAllCheckbox: 'Expand All'
   }
 };
 
@@ -305,6 +353,8 @@ var questionType = {
   number: 'number',
   cascade: 'cascade',
   geo: 'geo',
+  geotrace: 'geotrace',
+  geoshape: 'geoshape',
   text: 'text',
   date: 'date',
   option: 'option',
@@ -312,7 +362,9 @@ var questionType = {
   tree: 'tree',
   table: 'table',
   image: 'image',
-  autofield: 'autofield'
+  autofield: 'autofield',
+  signature: 'signature',
+  attachment: 'attachment'
 };
 
 var defaultForm = function defaultForm() {
@@ -553,7 +605,7 @@ function _slicedToArray(arr, i) {
   return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
 }
 
-function _objectWithoutPropertiesLoose(source, excluded) {
+function _objectWithoutPropertiesLoose$1(source, excluded) {
   if (source == null) return {};
   var target = {};
   var sourceKeys = Object.keys(source);
@@ -570,7 +622,7 @@ function _objectWithoutPropertiesLoose(source, excluded) {
 
 function _objectWithoutProperties(source, excluded) {
   if (source == null) return {};
-  var target = _objectWithoutPropertiesLoose(source, excluded);
+  var target = _objectWithoutPropertiesLoose$1(source, excluded);
   var key, i;
 
   if (Object.getOwnPropertySymbols) {
@@ -2167,6 +2219,8 @@ var SettingAddons = function SettingAddons(_ref) {
   }))));
 };
 
+var _excluded$2 = ["response_key"];
+
 var clearQuestionObj = function clearQuestionObj(keysToRemove, obj, checkEmpty) {
   if (keysToRemove === void 0) {
     keysToRemove = [];
@@ -2247,7 +2301,7 @@ var toEditor = function toEditor(webFormData) {
       return k === 'question' ? 'questions' : k;
     });
     var questions = qg.questions.map(function (q, qi) {
-      var _q, _q2, _q3;
+      var _q, _q2, _q$extra, _q3, _q4, _q5;
 
       var isNotOption = ![questionType.option, questionType.multiple_option].includes(q.type);
 
@@ -2261,7 +2315,23 @@ var toEditor = function toEditor(webFormData) {
         });
       }
 
-      if ((_q = q) !== null && _q !== void 0 && _q.options) {
+      if ((_q = q) !== null && _q !== void 0 && _q.center && !Array.isArray(q.center)) {
+        q = _extends({}, q, {
+          center: [q.center.lat, q.center.lng]
+        });
+      }
+
+      if (q.type === questionType.cascade && (_q2 = q) !== null && _q2 !== void 0 && _q2.extra && !Array.isArray(q.extra) && ((_q$extra = q.extra) === null || _q$extra === void 0 ? void 0 : _q$extra.type) === 'entity') {
+        q = _extends({}, q, {
+          entityExtra: {
+            name: q.extra.name,
+            parentId: q.extra.parentId
+          }
+        });
+        q = clearQuestionObj(['extra'], q);
+      }
+
+      if ((_q3 = q) !== null && _q3 !== void 0 && _q3.options) {
         var options = q.options.map(function (o, oi) {
           return _extends({
             id: (o === null || o === void 0 ? void 0 : o.id) || qi + 1 + (oi + 1)
@@ -2274,7 +2344,7 @@ var toEditor = function toEditor(webFormData) {
         });
       }
 
-      if ((_q2 = q) !== null && _q2 !== void 0 && _q2.dependency) {
+      if ((_q4 = q) !== null && _q4 !== void 0 && _q4.dependency) {
         var dependency = q.dependency.map(function (d) {
           var _d, _d2;
 
@@ -2298,7 +2368,7 @@ var toEditor = function toEditor(webFormData) {
       }
 
       return _extends({}, q, {
-        order: ((_q3 = q) === null || _q3 === void 0 ? void 0 : _q3.order) || qi + 1,
+        order: ((_q5 = q) === null || _q5 === void 0 ? void 0 : _q5.order) || qi + 1,
         questionGroupId: gid
       });
     });
@@ -2337,7 +2407,7 @@ var toWebform = function toWebform(formData, questionGroups) {
 
   var output = questionGroups.map(function (qg) {
     var questions = qg.questions.map(function (q) {
-      var _q4, _q5, _q6, _q7, _q8, _q8$hint, _q9, _q9$hint, _q10, _q10$hint, _q10$hint$path;
+      var _q6, _q7, _q8, _q9, _q10, _q11, _q12, _q13, _q13$hint, _q14, _q14$hint, _q15, _q15$hint, _q15$hint$path;
 
       var isNotOption = ![questionType.option, questionType.multiple_option].includes(q.type);
 
@@ -2345,7 +2415,7 @@ var toWebform = function toWebform(formData, questionGroups) {
         q = clearQuestionObj(['requiredDoubleEntry', 'hiddenString'], q);
       }
 
-      if (q.type !== questionType.number && q.type !== questionType.date) {
+      if (q.type !== questionType.number && q.type !== questionType.date && q.type !== questionType.attachment) {
         q = clearQuestionObj(['rule'], q);
       }
 
@@ -2366,7 +2436,32 @@ var toWebform = function toWebform(formData, questionGroups) {
         q = clearQuestionObj(['allowOther'], q);
       }
 
+      if (q.type === questionType.cascade && (_q6 = q) !== null && _q6 !== void 0 && _q6.entityExtra) {
+        q = _extends({}, q, {
+          extra: {
+            type: 'entity',
+            name: q.entityExtra.name,
+            parentId: q.entityExtra.parentId
+          }
+        });
+      }
+
+      q = clearQuestionObj(['entityExtra'], q);
+
       if (q.type !== questionType.cascade) {
+        q = clearQuestionObj(['partialRequired'], q);
+      }
+
+      if (q.type !== questionType.attachment && (_q7 = q) !== null && _q7 !== void 0 && _q7.api && Object.prototype.hasOwnProperty.call(q.api, 'response_key')) {
+        var _q$api = q.api,
+            restApi = _objectWithoutPropertiesLoose(_q$api, _excluded$2);
+
+        q = _extends({}, q, {
+          api: restApi
+        });
+      }
+
+      if (q.type !== questionType.cascade && q.type !== questionType.attachment) {
         q = clearQuestionObj(['api'], q);
       }
 
@@ -2378,11 +2473,31 @@ var toWebform = function toWebform(formData, questionGroups) {
         q = clearQuestionObj(['columns'], q);
       }
 
-      if (!((_q4 = q) !== null && _q4 !== void 0 && _q4.tooltip)) {
+      var geoTypes = [questionType.geo, questionType.geotrace, questionType.geoshape];
+
+      if (!geoTypes.includes(q.type)) {
+        q = clearQuestionObj(['center'], q);
+      } else if ((_q8 = q) !== null && _q8 !== void 0 && _q8.center) {
+        var _q$center = q.center,
+            lat = _q$center[0],
+            lng = _q$center[1];
+        var latEmpty = lat === null || typeof lat === 'undefined';
+        var lngEmpty = lng === null || typeof lng === 'undefined';
+
+        if (latEmpty && lngEmpty) {
+          q = clearQuestionObj(['center'], q);
+        }
+      }
+
+      if (q.type !== questionType.tree) {
+        q = clearQuestionObj(['checkStrategy', 'expandAll'], q);
+      }
+
+      if (!((_q9 = q) !== null && _q9 !== void 0 && _q9.tooltip)) {
         q = clearQuestionObj(['tooltip'], q);
       }
 
-      if ((_q5 = q) !== null && _q5 !== void 0 && _q5.dependency) {
+      if ((_q10 = q) !== null && _q10 !== void 0 && _q10.dependency) {
         var dependency = q.dependency.map(function (d) {
           var _d3, _d4;
 
@@ -2405,11 +2520,11 @@ var toWebform = function toWebform(formData, questionGroups) {
         });
       }
 
-      if ((_q6 = q) !== null && _q6 !== void 0 && _q6.translations) {
+      if ((_q11 = q) !== null && _q11 !== void 0 && _q11.translations) {
         q = clearTranslations(q, q.translations);
       }
 
-      if ((_q7 = q) !== null && _q7 !== void 0 && _q7.hint && !((_q8 = q) !== null && _q8 !== void 0 && (_q8$hint = _q8.hint) !== null && _q8$hint !== void 0 && _q8$hint["static"]) && (!((_q9 = q) !== null && _q9 !== void 0 && (_q9$hint = _q9.hint) !== null && _q9$hint !== void 0 && _q9$hint.endpoint) || !((_q10 = q) !== null && _q10 !== void 0 && (_q10$hint = _q10.hint) !== null && _q10$hint !== void 0 && (_q10$hint$path = _q10$hint.path) !== null && _q10$hint$path !== void 0 && _q10$hint$path.length))) {
+      if ((_q12 = q) !== null && _q12 !== void 0 && _q12.hint && !((_q13 = q) !== null && _q13 !== void 0 && (_q13$hint = _q13.hint) !== null && _q13$hint !== void 0 && _q13$hint["static"]) && (!((_q14 = q) !== null && _q14 !== void 0 && (_q14$hint = _q14.hint) !== null && _q14$hint !== void 0 && _q14$hint.endpoint) || !((_q15 = q) !== null && _q15 !== void 0 && (_q15$hint = _q15.hint) !== null && _q15$hint !== void 0 && (_q15$hint$path = _q15$hint.path) !== null && _q15$hint$path !== void 0 && _q15$hint$path.length))) {
         q = clearQuestionObj(['hint'], q);
       }
 
@@ -2428,6 +2543,18 @@ var toWebform = function toWebform(formData, questionGroups) {
     if (qg !== null && qg !== void 0 && qg.repeatText) {
       result = _extends({}, result, {
         repeatText: qg.repeatText
+      });
+    }
+
+    if (qg !== null && qg !== void 0 && qg.leading_question) {
+      result = _extends({}, result, {
+        leading_question: qg.leading_question
+      });
+    }
+
+    if (qg !== null && qg !== void 0 && qg.show_repeat_in_question_level) {
+      result = _extends({}, result, {
+        show_repeat_in_question_level: qg.show_repeat_in_question_level
       });
     }
 
@@ -3184,6 +3311,56 @@ var FormTranslations = function FormTranslations() {
   })));
 };
 
+var Text$1 = antd.Typography.Text;
+
+var PreviewErrorBoundary = /*#__PURE__*/function (_React$Component) {
+  _inheritsLoose(PreviewErrorBoundary, _React$Component);
+
+  function PreviewErrorBoundary(props) {
+    var _this;
+
+    _this = _React$Component.call(this, props) || this;
+    _this.state = {
+      error: null
+    };
+    return _this;
+  }
+
+  PreviewErrorBoundary.getDerivedStateFromError = function getDerivedStateFromError(error) {
+    return {
+      error: error
+    };
+  };
+
+  var _proto = PreviewErrorBoundary.prototype;
+
+  _proto.render = function render() {
+    if (this.state.error) {
+      return /*#__PURE__*/React__default.createElement(antd.Alert, {
+        type: "error",
+        message: "Preview could not be rendered",
+        description: /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement(Text$1, null, "Some question config may be incomplete. Fix the issues below and switch back to Preview to retry."), /*#__PURE__*/React__default.createElement("pre", {
+          style: {
+            marginTop: 12,
+            padding: 12,
+            background: '#fff1f0',
+            border: '1px solid #ffa39e',
+            borderRadius: 4,
+            fontSize: 12,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word'
+          }
+        }, this.state.error.toString(), this.state.error.stack ? "\n\n" + this.state.error.stack : '')),
+        showIcon: true
+      });
+    }
+
+    return this.props.children;
+  };
+
+  return PreviewErrorBoundary;
+}(React__default.Component);
+
 var FormPreview = function FormPreview() {
   var _questionGroupFn$stor = questionGroupFn.store.useState(function (s) {
     return s;
@@ -3193,9 +3370,12 @@ var FormPreview = function FormPreview() {
   var formStore = formFn.store.useState(function (s) {
     return s;
   });
-  return /*#__PURE__*/React__default.createElement(akvoReactForm.Webform, {
-    forms: data.toWebform(formStore, questionGroups)
-  });
+  var forms = data.toWebform(formStore, questionGroups);
+  return /*#__PURE__*/React__default.createElement(PreviewErrorBoundary, {
+    key: JSON.stringify(forms)
+  }, /*#__PURE__*/React__default.createElement(akvoReactForm.Webform, {
+    forms: forms
+  }));
 };
 
 var FormDefinition = function FormDefinition(_ref) {
@@ -3248,7 +3428,7 @@ var FormDefinition = function FormDefinition(_ref) {
   })));
 };
 
-var Text$1 = antd.Typography.Text;
+var Text$2 = antd.Typography.Text;
 
 var QuestionGroupSetting = function QuestionGroupSetting(_ref) {
   var id = _ref.id,
@@ -3256,19 +3436,31 @@ var QuestionGroupSetting = function QuestionGroupSetting(_ref) {
       name = _ref.name,
       description = _ref.description,
       repeatable = _ref.repeatable,
-      repeatText = _ref.repeatText;
+      repeatText = _ref.repeatText,
+      leading_question = _ref.leading_question,
+      show_repeat_in_question_level = _ref.show_repeat_in_question_level;
   var namePreffix = "question_group-" + id;
   var UIText = UIStore.useState(function (s) {
     return s.UIText;
   });
+  var questionGroups = questionGroupFn.store.useState(function (s) {
+    return s.questionGroups;
+  });
+  var allQuestionsDropdownValue = React.useMemo(function () {
+    return questionGroups.flatMap(function (qg) {
+      return qg.questions.map(function (q) {
+        return {
+          label: qg.order + "." + q.order + ". " + (q.label || q.name),
+          value: q.id
+        };
+      });
+    });
+  }, [questionGroups]);
 
   var _useState = React.useState(name ? snakeCase$1(name) : snakeCase$1(label)),
       nameFieldValue = _useState[0],
       setNameFieldValue = _useState[1];
 
-  var questionGroups = questionGroupFn.store.useState(function (s) {
-    return s.questionGroups;
-  });
   var questionGroupErrors = ErrorStore.useState(function (s) {
     return s.questionGroupErrors;
   });
@@ -3405,6 +3597,36 @@ var QuestionGroupSetting = function QuestionGroupSetting(_ref) {
     });
   };
 
+  var handleChangeLeadingQuestion = function handleChangeLeadingQuestion(value) {
+    questionGroupFn.store.update(function (s) {
+      s.questionGroups = s.questionGroups.map(function (x) {
+        if (x.id === id) {
+          return _extends({}, x, {
+            leading_question: value
+          });
+        }
+
+        return x;
+      });
+    });
+  };
+
+  var handleChangeShowRepeatInQuestionLevel = function handleChangeShowRepeatInQuestionLevel(e) {
+    questionGroupFn.store.update(function (s) {
+      s.questionGroups = s.questionGroups.map(function (x) {
+        if (x.id === id) {
+          var _e$target6;
+
+          return _extends({}, x, {
+            show_repeat_in_question_level: e === null || e === void 0 ? void 0 : (_e$target6 = e.target) === null || _e$target6 === void 0 ? void 0 : _e$target6.checked
+          });
+        }
+
+        return x;
+      });
+    });
+  };
+
   return /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: UIText.inputQuestionGroupLabelLabel,
     initialValue: label || name,
@@ -3423,7 +3645,7 @@ var QuestionGroupSetting = function QuestionGroupSetting(_ref) {
     value: nameFieldValue
   })), currentGroupError !== null && currentGroupError !== void 0 && currentGroupError.id ? /*#__PURE__*/React__default.createElement("div", {
     className: styles['field-error-wrapper']
-  }, /*#__PURE__*/React__default.createElement(Text$1, {
+  }, /*#__PURE__*/React__default.createElement(Text$2, {
     type: "danger"
   }, currentGroupError.message)) : '', /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: UIText.inputQuestionGroupDescriptionLabel,
@@ -3451,7 +3673,27 @@ var QuestionGroupSetting = function QuestionGroupSetting(_ref) {
   }, /*#__PURE__*/React__default.createElement(antd.Input, {
     onChange: handleChangeRepeatText,
     allowClear: true
-  })))));
+  })))), repeatable && /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputLeadingQuestionLabel,
+    name: namePreffix + "-leading_question",
+    initialValue: leading_question
+  }, /*#__PURE__*/React__default.createElement(antd.Select, {
+    showSearch: true,
+    className: styles['select-dropdown'],
+    optionFilterProp: "label",
+    options: allQuestionsDropdownValue,
+    getPopupContainer: function getPopupContainer(triggerNode) {
+      return triggerNode.parentElement;
+    },
+    onChange: handleChangeLeadingQuestion,
+    allowClear: true
+  })), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    name: namePreffix + "-show_repeat_in_question_level",
+    className: styles['input-checkbox-wrapper']
+  }, /*#__PURE__*/React__default.createElement(antd.Checkbox, {
+    onChange: handleChangeShowRepeatInQuestionLevel,
+    checked: show_repeat_in_question_level
+  }, ' ', UIText.inputShowRepeatInQuestionLevelCheckbox))));
 };
 
 var SettingInput = function SettingInput(_ref) {
@@ -4364,10 +4606,20 @@ var SettingOption = function SettingOption(_ref2) {
   }));
 };
 
+var checkStrategyOptions = [{
+  label: 'Parent',
+  value: 'parent'
+}, {
+  label: 'Children',
+  value: 'children'
+}];
+
 var SettingTree = function SettingTree(_ref) {
   var id = _ref.id,
       questionGroupId = _ref.questionGroupId,
-      option = _ref.option;
+      option = _ref.option,
+      checkStrategy = _ref.checkStrategy,
+      expandAll = _ref.expandAll;
   var namePreffix = "question-" + id;
 
   var _UIStore$useState = UIStore.useState(function (s) {
@@ -4378,15 +4630,15 @@ var SettingTree = function SettingTree(_ref) {
 
   var settingTreeDropdownValue = hostParams === null || hostParams === void 0 ? void 0 : hostParams.settingTreeDropdownValue;
 
-  var handleChangeTreeDropdown = function handleChangeTreeDropdown(e) {
+  var updateState = function updateState(name, value) {
     questionGroupFn.store.update(function (s) {
       s.questionGroups = s.questionGroups.map(function (qg) {
         if (qg.id === questionGroupId) {
           var questions = qg.questions.map(function (q) {
             if (q.id === id) {
-              return _extends({}, q, {
-                option: e
-              });
+              var _extends2;
+
+              return _extends({}, q, (_extends2 = {}, _extends2[name] = value, _extends2));
             }
 
             return q;
@@ -4415,8 +4667,35 @@ var SettingTree = function SettingTree(_ref) {
     getPopupContainer: function getPopupContainer(triggerNode) {
       return triggerNode.parentElement;
     },
-    onChange: handleChangeTreeDropdown
-  })));
+    onChange: function onChange(e) {
+      return updateState('option', e);
+    }
+  })), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputCheckStrategyLabel,
+    name: namePreffix + "-check_strategy",
+    initialValue: checkStrategy
+  }, /*#__PURE__*/React__default.createElement(antd.Select, {
+    className: styles['select-dropdown'],
+    options: checkStrategyOptions,
+    getPopupContainer: function getPopupContainer(triggerNode) {
+      return triggerNode.parentElement;
+    },
+    onChange: function onChange(e) {
+      return updateState('checkStrategy', e);
+    },
+    allowClear: true
+  })), /*#__PURE__*/React__default.createElement(antd.Space, {
+    className: styles['space-align-left']
+  }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    name: namePreffix + "-expand_all"
+  }, /*#__PURE__*/React__default.createElement(antd.Checkbox, {
+    onChange: function onChange(e) {
+      var _e$target;
+
+      return updateState('expandAll', e === null || e === void 0 ? void 0 : (_e$target = e.target) === null || _e$target === void 0 ? void 0 : _e$target.checked);
+    },
+    checked: expandAll
+  }, ' ', UIText.inputExpandAllCheckbox))));
 };
 
 var SettingCascade = function SettingCascade(_ref) {
@@ -4427,7 +4706,9 @@ var SettingCascade = function SettingCascade(_ref) {
     endpoint: null,
     initial: 0,
     list: false
-  } : _ref$api;
+  } : _ref$api,
+      partialRequired = _ref.partialRequired,
+      entityExtra = _ref.entityExtra;
   var namePreffix = "question-" + id;
 
   var _UIStore$useState = UIStore.useState(function (s) {
@@ -4438,6 +4719,9 @@ var SettingCascade = function SettingCascade(_ref) {
 
   var settingCascadeURL = hostParams === null || hostParams === void 0 ? void 0 : hostParams.settingCascadeURL;
   var form = antd.Form.useFormInstance();
+  var questionGroups = questionGroupFn.store.useState(function (s) {
+    return s.questionGroups;
+  });
   var cascadeURLDropdownValue = React.useMemo(function () {
     return settingCascadeURL.map(function (x) {
       return {
@@ -4446,6 +4730,17 @@ var SettingCascade = function SettingCascade(_ref) {
       };
     });
   }, [settingCascadeURL]);
+  var allQuestionsDropdownValue = React.useMemo(function () {
+    return questionGroups.flatMap(function (qg) {
+      return qg.questions.map(function (q) {
+        return {
+          label: qg.order + "." + q.order + ". " + (q.label || q.name),
+          value: q.id
+        };
+      });
+    });
+  }, [questionGroups]);
+  var entityConfigEnabled = !!entityExtra;
 
   var updateGlobalState = function updateGlobalState(values) {
     if (values === void 0) {
@@ -4497,6 +4792,91 @@ var SettingCascade = function SettingCascade(_ref) {
     });
   };
 
+  var handleChangePartialRequired = function handleChangePartialRequired(e) {
+    questionGroupFn.store.update(function (s) {
+      s.questionGroups = s.questionGroups.map(function (qg) {
+        if (qg.id === questionGroupId) {
+          var questions = qg.questions.map(function (q) {
+            if (q.id === id) {
+              var _e$target;
+
+              return _extends({}, q, {
+                partialRequired: e === null || e === void 0 ? void 0 : (_e$target = e.target) === null || _e$target === void 0 ? void 0 : _e$target.checked
+              });
+            }
+
+            return q;
+          });
+          return _extends({}, qg, {
+            questions: questions
+          });
+        }
+
+        return qg;
+      });
+    });
+  };
+
+  var handleToggleEntityConfig = function handleToggleEntityConfig(e) {
+    questionGroupFn.store.update(function (s) {
+      s.questionGroups = s.questionGroups.map(function (qg) {
+        if (qg.id === questionGroupId) {
+          var questions = qg.questions.map(function (q) {
+            if (q.id === id) {
+              var _e$target2;
+
+              if (e !== null && e !== void 0 && (_e$target2 = e.target) !== null && _e$target2 !== void 0 && _e$target2.checked) {
+                return _extends({}, q, {
+                  entityExtra: {
+                    name: '',
+                    parentId: null
+                  }
+                });
+              }
+
+              var next = _extends({}, q);
+
+              delete next.entityExtra;
+              return next;
+            }
+
+            return q;
+          });
+          return _extends({}, qg, {
+            questions: questions
+          });
+        }
+
+        return qg;
+      });
+    });
+  };
+
+  var handleChangeEntityField = function handleChangeEntityField(field, value) {
+    questionGroupFn.store.update(function (s) {
+      s.questionGroups = s.questionGroups.map(function (qg) {
+        if (qg.id === questionGroupId) {
+          var questions = qg.questions.map(function (q) {
+            if (q.id === id) {
+              var _extends2;
+
+              return _extends({}, q, {
+                entityExtra: _extends({}, q.entityExtra, (_extends2 = {}, _extends2[field] = value, _extends2))
+              });
+            }
+
+            return q;
+          });
+          return _extends({}, qg, {
+            questions: questions
+          });
+        }
+
+        return qg;
+      });
+    });
+  };
+
   return /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("p", {
     className: styles['more-question-setting-text']
   }, UIText.questionMoreCascadeSettingText), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
@@ -4537,7 +4917,46 @@ var SettingCascade = function SettingCascade(_ref) {
     controls: false,
     keyboard: false,
     onChange: handleChangeInitial
-  })))));
+  })))), /*#__PURE__*/React__default.createElement(antd.Space, {
+    className: styles['space-align-left']
+  }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    name: namePreffix + "-partial_required"
+  }, /*#__PURE__*/React__default.createElement(antd.Checkbox, {
+    onChange: handleChangePartialRequired,
+    checked: partialRequired
+  }, ' ', UIText.inputPartialRequiredCheckbox)), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    name: namePreffix + "-entity_config"
+  }, /*#__PURE__*/React__default.createElement(antd.Checkbox, {
+    onChange: handleToggleEntityConfig,
+    checked: entityConfigEnabled
+  }, ' ', UIText.inputEntityConfigToggleCheckbox))), entityConfigEnabled && /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputEntityNameLabel,
+    name: namePreffix + "-entity_name",
+    initialValue: entityExtra === null || entityExtra === void 0 ? void 0 : entityExtra.name
+  }, /*#__PURE__*/React__default.createElement(antd.Input, {
+    onChange: function onChange(e) {
+      var _e$target3;
+
+      return handleChangeEntityField('name', e === null || e === void 0 ? void 0 : (_e$target3 = e.target) === null || _e$target3 === void 0 ? void 0 : _e$target3.value);
+    },
+    allowClear: true
+  })), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputEntityParentIdLabel,
+    name: namePreffix + "-entity_parent_id",
+    initialValue: entityExtra === null || entityExtra === void 0 ? void 0 : entityExtra.parentId
+  }, /*#__PURE__*/React__default.createElement(antd.Select, {
+    showSearch: true,
+    className: styles['select-dropdown'],
+    optionFilterProp: "label",
+    options: allQuestionsDropdownValue,
+    getPopupContainer: function getPopupContainer(triggerNode) {
+      return triggerNode.parentElement;
+    },
+    onChange: function onChange(e) {
+      return handleChangeEntityField('parentId', e);
+    },
+    allowClear: true
+  }))));
 };
 
 var moment = createCommonjsModule(function (module, exports) {
@@ -10734,7 +11153,7 @@ var SettingImage = function SettingImage(_ref) {
 var fnStringExample = "Search question_name by typing #\nExample format below:\n#question_name# / #question_name#\nOR\n#question_name#.includes('Test') ? #question_name# / #question_name# : 0 }";
 var fnColorExample = "{ 'answer_value': '#CCFFC4' }";
 var allowedQuestionTypes$1 = [questionType.input, questionType.number, questionType.text, questionType.option, questionType.multiple_option, questionType.autofield];
-var Text$2 = antd.Typography.Text;
+var Text$3 = antd.Typography.Text;
 
 var SettingAutofield = function SettingAutofield(_ref) {
   var id = _ref.id,
@@ -11014,11 +11433,11 @@ var SettingAutofield = function SettingAutofield(_ref) {
     ghost: true
   }, UIText.evaluatefnStringButton), (currentAutofieldFnStringError === null || currentAutofieldFnStringError === void 0 ? void 0 : currentAutofieldFnStringError.id) && /*#__PURE__*/React__default.createElement(antd.Space, null, /*#__PURE__*/React__default.createElement(CloseCircleTwoTone$2, {
     twoToneColor: "#ff4d4f"
-  }), /*#__PURE__*/React__default.createElement(Text$2, {
+  }), /*#__PURE__*/React__default.createElement(Text$3, {
     type: "danger"
   }, currentAutofieldFnStringError.message)), isCorrect && /*#__PURE__*/React__default.createElement(antd.Space, null, /*#__PURE__*/React__default.createElement(CheckCircleTwoTone$2, {
     twoToneColor: '#52c41a'
-  }), /*#__PURE__*/React__default.createElement(Text$2, {
+  }), /*#__PURE__*/React__default.createElement(Text$3, {
     type: "success"
   }, UIText.evaluatefnStringSuccess))), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: UIText.inputQuestionAutofieldFnColor,
@@ -11036,6 +11455,224 @@ var SettingAutofield = function SettingAutofield(_ref) {
     onAddonBefore: onAddonBefore,
     onAddonAfter: onAddonAfter
   }));
+};
+
+var SettingGeo = function SettingGeo(_ref) {
+  var id = _ref.id,
+      questionGroupId = _ref.questionGroupId,
+      center = _ref.center;
+  var namePreffix = "question-" + id;
+  var UIText = UIStore.useState(function (s) {
+    return s.UIText;
+  });
+  var lat = Array.isArray(center) ? center[0] : null;
+  var lng = Array.isArray(center) ? center[1] : null;
+
+  var updateCenter = function updateCenter(index, value) {
+    questionGroupFn.store.update(function (s) {
+      s.questionGroups = s.questionGroups.map(function (qg) {
+        if (qg.id === questionGroupId) {
+          var questions = qg.questions.map(function (q) {
+            if (q.id === id) {
+              var current = Array.isArray(q.center) ? [].concat(q.center) : [null, null];
+              current[index] = value;
+              return _extends({}, q, {
+                center: current
+              });
+            }
+
+            return q;
+          });
+          return _extends({}, qg, {
+            questions: questions
+          });
+        }
+
+        return qg;
+      });
+    });
+  };
+
+  return /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("p", {
+    className: styles['more-question-setting-text']
+  }, UIText.questionMoreGeoSettingText), /*#__PURE__*/React__default.createElement(antd.Row, {
+    align: "middle",
+    gutter: [24, 24]
+  }, /*#__PURE__*/React__default.createElement(antd.Col, {
+    span: 8
+  }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputGeoLatitudeLabel,
+    name: namePreffix + "-center_lat",
+    initialValue: lat
+  }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+    style: {
+      width: '100%'
+    },
+    controls: false,
+    keyboard: false,
+    onChange: function onChange(v) {
+      return updateCenter(0, v);
+    }
+  }))), /*#__PURE__*/React__default.createElement(antd.Col, {
+    span: 8
+  }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputGeoLongitudeLabel,
+    name: namePreffix + "-center_lng",
+    initialValue: lng
+  }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+    style: {
+      width: '100%'
+    },
+    controls: false,
+    keyboard: false,
+    onChange: function onChange(v) {
+      return updateCenter(1, v);
+    }
+  })))));
+};
+
+var allowedFileTypeOptions = [{
+  label: 'JPEG',
+  value: 'jpeg'
+}, {
+  label: 'JPG',
+  value: 'jpg'
+}, {
+  label: 'PNG',
+  value: 'png'
+}, {
+  label: 'GIF',
+  value: 'gif'
+}, {
+  label: 'WebP',
+  value: 'webp'
+}, {
+  label: 'PDF',
+  value: 'pdf'
+}, {
+  label: 'DOC',
+  value: 'doc'
+}, {
+  label: 'DOCX',
+  value: 'docx'
+}, {
+  label: 'XLS',
+  value: 'xls'
+}, {
+  label: 'XLSX',
+  value: 'xlsx'
+}, {
+  label: 'ODT',
+  value: 'odt'
+}, {
+  label: 'ODS',
+  value: 'ods'
+}, {
+  label: 'CSV',
+  value: 'csv'
+}, {
+  label: 'MP4',
+  value: 'mp4'
+}, {
+  label: 'MOV',
+  value: 'mov'
+}, {
+  label: 'AVI',
+  value: 'avi'
+}, {
+  label: 'MP3',
+  value: 'mp3'
+}, {
+  label: 'WAV',
+  value: 'wav'
+}];
+
+var SettingAttachment = function SettingAttachment(_ref) {
+  var id = _ref.id,
+      questionGroupId = _ref.questionGroupId,
+      rule = _ref.rule,
+      api = _ref.api;
+  var namePreffix = "question-" + id;
+  var UIText = UIStore.useState(function (s) {
+    return s.UIText;
+  });
+  var allowedFileTypes = (rule === null || rule === void 0 ? void 0 : rule.allowedFileTypes) || [];
+  var endpoint = (api === null || api === void 0 ? void 0 : api.endpoint) || null;
+  var responseKey = (api === null || api === void 0 ? void 0 : api.response_key) || null;
+
+  var updateState = function updateState(name, value) {
+    questionGroupFn.store.update(function (s) {
+      s.questionGroups = s.questionGroups.map(function (qg) {
+        if (qg.id === questionGroupId) {
+          var questions = qg.questions.map(function (q) {
+            if (q.id === id) {
+              var _extends2;
+
+              if (name === 'allowedFileTypes') {
+                return _extends({}, q, {
+                  rule: _extends({}, q === null || q === void 0 ? void 0 : q.rule, {
+                    allowedFileTypes: value
+                  })
+                });
+              }
+
+              return _extends({}, q, {
+                api: _extends({}, q === null || q === void 0 ? void 0 : q.api, (_extends2 = {}, _extends2[name] = value, _extends2))
+              });
+            }
+
+            return q;
+          });
+          return _extends({}, qg, {
+            questions: questions
+          });
+        }
+
+        return qg;
+      });
+    });
+  };
+
+  return /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("p", {
+    className: styles['more-question-setting-text']
+  }, UIText.questionMoreAttachmentSettingText), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputAllowedFileTypesLabel,
+    name: namePreffix + "-allowed_file_types",
+    initialValue: allowedFileTypes
+  }, /*#__PURE__*/React__default.createElement(antd.Select, {
+    mode: "multiple",
+    className: styles['select-dropdown'],
+    options: allowedFileTypeOptions,
+    getPopupContainer: function getPopupContainer(triggerNode) {
+      return triggerNode.parentElement;
+    },
+    onChange: function onChange(v) {
+      return updateState('allowedFileTypes', v);
+    },
+    allowClear: true
+  })), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputAttachmentEndpointLabel,
+    name: namePreffix + "-attachment_endpoint",
+    initialValue: endpoint
+  }, /*#__PURE__*/React__default.createElement(antd.Input, {
+    onChange: function onChange(e) {
+      var _e$target;
+
+      return updateState('endpoint', (e === null || e === void 0 ? void 0 : (_e$target = e.target) === null || _e$target === void 0 ? void 0 : _e$target.value) || null);
+    },
+    allowClear: true
+  })), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputAttachmentResponseKeyLabel,
+    name: namePreffix + "-attachment_response_key",
+    initialValue: responseKey
+  }, /*#__PURE__*/React__default.createElement(antd.Input, {
+    onChange: function onChange(e) {
+      var _e$target2;
+
+      return updateState('response_key', (e === null || e === void 0 ? void 0 : (_e$target2 = e.target) === null || _e$target2 === void 0 ? void 0 : _e$target2.value) || null);
+    },
+    allowClear: true
+  })));
 };
 
 var QuestionHint = function QuestionHint(_ref) {
@@ -11271,7 +11908,7 @@ var QuestionStats = function QuestionStats(_ref) {
 };
 
 var questionTypeWithRule = ['number', 'date'];
-var Text$3 = antd.Typography.Text;
+var Text$4 = antd.Typography.Text;
 
 var QuestionSetting = function QuestionSetting(_ref) {
   var question = _ref.question,
@@ -11287,6 +11924,8 @@ var QuestionSetting = function QuestionSetting(_ref) {
       questionGroupId = question.questionGroupId,
       meta = question.meta,
       displayOnly = question.displayOnly,
+      disabled = question.disabled,
+      is_repeat_identifier = question.is_repeat_identifier,
       disableDelete = question.disableDelete;
   var namePreffix = "question-" + id;
   var form = antd.Form.useFormInstance();
@@ -11370,8 +12009,15 @@ var QuestionSetting = function QuestionSetting(_ref) {
     var currentQuestionGroup = questionGroups.find(function (qg) {
       return qg.id === questionGroupId;
     });
-    return ![questionType.tree, questionType.table].includes(type) && !(currentQuestionGroup !== null && currentQuestionGroup !== void 0 && currentQuestionGroup.repeatable);
+    return ![questionType.tree, questionType.table, questionType.geotrace, questionType.geoshape, questionType.signature, questionType.attachment].includes(type) && !(currentQuestionGroup !== null && currentQuestionGroup !== void 0 && currentQuestionGroup.repeatable);
   }, [type, questionGroups, questionGroupId]);
+  var isInRepeatableGroup = React.useMemo(function () {
+    var _questionGroups$find;
+
+    return !!((_questionGroups$find = questionGroups.find(function (qg) {
+      return qg.id === questionGroupId;
+    })) !== null && _questionGroups$find !== void 0 && _questionGroups$find.repeatable);
+  }, [questionGroups, questionGroupId]);
   var questionTypeDropdownValue = React.useMemo(function () {
     if (limitQuestionType && limitQuestionType !== null && limitQuestionType !== void 0 && limitQuestionType.length) {
       return limitQuestionType;
@@ -11530,6 +12176,18 @@ var QuestionSetting = function QuestionSetting(_ref) {
     updateState('meta', e === null || e === void 0 ? void 0 : (_e$target8 = e.target) === null || _e$target8 === void 0 ? void 0 : _e$target8.checked);
   };
 
+  var handleChangeDisabled = function handleChangeDisabled(e) {
+    var _e$target9;
+
+    updateState('disabled', e === null || e === void 0 ? void 0 : (_e$target9 = e.target) === null || _e$target9 === void 0 ? void 0 : _e$target9.checked);
+  };
+
+  var handleChangeIsRepeatIdentifier = function handleChangeIsRepeatIdentifier(e) {
+    var _e$target10;
+
+    updateState('is_repeat_identifier', e === null || e === void 0 ? void 0 : (_e$target10 = e.target) === null || _e$target10 === void 0 ? void 0 : _e$target10.checked);
+  };
+
   var dependantGroup = lodash.map(lodash.groupBy(dependant.map(function (x) {
     return {
       name: x.questionGroup.order + "." + x.order + ". " + x.name,
@@ -11594,7 +12252,7 @@ var QuestionSetting = function QuestionSetting(_ref) {
     value: nameFieldValue
   })), currentQuestionNameError !== null && currentQuestionNameError !== void 0 && currentQuestionNameError.id ? /*#__PURE__*/React__default.createElement("div", {
     className: styles['field-error-wrapper']
-  }, /*#__PURE__*/React__default.createElement(Text$3, {
+  }, /*#__PURE__*/React__default.createElement(Text$4, {
     type: "danger"
   }, currentQuestionNameError.message)) : '', /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: /*#__PURE__*/React__default.createElement(antd.Space, {
@@ -11667,7 +12325,19 @@ var QuestionSetting = function QuestionSetting(_ref) {
       marginBottom: '-2px'
     },
     size: 16
-  })))), showMetaCheckbox && /*#__PURE__*/React__default.createElement(antd.Col, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+  })))), /*#__PURE__*/React__default.createElement(antd.Col, null, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    name: namePreffix + "-disabled",
+    className: styles['input-checkbox-wrapper']
+  }, /*#__PURE__*/React__default.createElement(antd.Checkbox, {
+    onChange: handleChangeDisabled,
+    checked: disabled
+  }, ' ', UIText.inputQuestionDisabledCheckbox))), isInRepeatableGroup && /*#__PURE__*/React__default.createElement(antd.Col, null, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    name: namePreffix + "-is_repeat_identifier",
+    className: styles['input-checkbox-wrapper']
+  }, /*#__PURE__*/React__default.createElement(antd.Checkbox, {
+    onChange: handleChangeIsRepeatIdentifier,
+    checked: is_repeat_identifier
+  }, ' ', UIText.inputQuestionIsRepeatIdentifierCheckbox))), showMetaCheckbox && /*#__PURE__*/React__default.createElement(antd.Col, null, /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     name: namePreffix + "-meta",
     className: styles['input-checkbox-wrapper']
   }, /*#__PURE__*/React__default.createElement(antd.Checkbox, {
@@ -11683,7 +12353,7 @@ var QuestionSetting = function QuestionSetting(_ref) {
       marginBottom: '-2px'
     },
     size: 16
-  })))))), showHintSetting && /*#__PURE__*/React__default.createElement(QuestionHint, question), qType === questionType.input && /*#__PURE__*/React__default.createElement(SettingInput, question), qType === questionType.number && /*#__PURE__*/React__default.createElement(SettingNumber, question), [questionType.option, questionType.multiple_option].includes(qType) && /*#__PURE__*/React__default.createElement(SettingOption, question), qType === questionType.tree && /*#__PURE__*/React__default.createElement(SettingTree, question), qType === questionType.cascade && /*#__PURE__*/React__default.createElement(SettingCascade, question), qType === questionType.date && /*#__PURE__*/React__default.createElement(SettingDate, question), qType === questionType.table && /*#__PURE__*/React__default.createElement(SettingTable, question), qType === questionType.image && /*#__PURE__*/React__default.createElement(SettingImage, question), qType === questionType.autofield && /*#__PURE__*/React__default.createElement(SettingAutofield, question), /*#__PURE__*/React__default.createElement(QuestionStats, question));
+  })))))), showHintSetting && /*#__PURE__*/React__default.createElement(QuestionHint, question), qType === questionType.input && /*#__PURE__*/React__default.createElement(SettingInput, question), qType === questionType.number && /*#__PURE__*/React__default.createElement(SettingNumber, question), [questionType.option, questionType.multiple_option].includes(qType) && /*#__PURE__*/React__default.createElement(SettingOption, question), qType === questionType.tree && /*#__PURE__*/React__default.createElement(SettingTree, question), qType === questionType.cascade && /*#__PURE__*/React__default.createElement(SettingCascade, question), qType === questionType.date && /*#__PURE__*/React__default.createElement(SettingDate, question), qType === questionType.table && /*#__PURE__*/React__default.createElement(SettingTable, question), qType === questionType.image && /*#__PURE__*/React__default.createElement(SettingImage, question), qType === questionType.autofield && /*#__PURE__*/React__default.createElement(SettingAutofield, question), [questionType.geo, questionType.geotrace, questionType.geoshape].includes(qType) && /*#__PURE__*/React__default.createElement(SettingGeo, question), qType === questionType.attachment && /*#__PURE__*/React__default.createElement(SettingAttachment, question), /*#__PURE__*/React__default.createElement(QuestionStats, question));
 };
 
 var dependencyTypes = [{
@@ -12109,6 +12779,7 @@ var QuestionSkipLogic = function QuestionSkipLogic(_ref3) {
   var id = question.id,
       questionGroupId = question.questionGroupId,
       dependency = question.dependency,
+      dependency_rule = question.dependency_rule,
       currentQuestionOrder = question.order;
   var UIText = UIStore.useState(function (s) {
     return s.UIText;
@@ -12154,6 +12825,30 @@ var QuestionSkipLogic = function QuestionSkipLogic(_ref3) {
     });
   }, [questions, questionGroups]);
 
+  var handleChangeDependencyRule = function handleChangeDependencyRule(value) {
+    questionGroupFn.store.update(function (s) {
+      s.questionGroups = s.questionGroups.map(function (qg) {
+        if (qg.id === questionGroupId) {
+          var _questions2 = qg.questions.map(function (q) {
+            if (q.id === id) {
+              return _extends({}, q, {
+                dependency_rule: value
+              });
+            }
+
+            return q;
+          });
+
+          return _extends({}, qg, {
+            questions: _questions2
+          });
+        }
+
+        return qg;
+      });
+    });
+  };
+
   if (!(dependencies !== null && dependencies !== void 0 && (_dependencies$ = dependencies[0]) !== null && _dependencies$ !== void 0 && _dependencies$.dependentTo) && !(dependentToQuestions !== null && dependentToQuestions !== void 0 && dependentToQuestions.length)) {
     return /*#__PURE__*/React__default.createElement(antd.Alert, {
       message: UIText.infoNoDependentQuestionText,
@@ -12167,7 +12862,27 @@ var QuestionSkipLogic = function QuestionSkipLogic(_ref3) {
 
   return /*#__PURE__*/React__default.createElement(antd.Row, {
     gutter: [24, 24]
-  }, dependencies === null || dependencies === void 0 ? void 0 : dependencies.map(function (dependency, di) {
+  }, (dependency === null || dependency === void 0 ? void 0 : dependency.length) >= 2 && /*#__PURE__*/React__default.createElement(antd.Col, {
+    span: 24
+  }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputDependencyRuleLabel,
+    name: "question-" + id + "-dependency_rule",
+    initialValue: dependency_rule
+  }, /*#__PURE__*/React__default.createElement(antd.Select, {
+    className: styles['select-dropdown'],
+    options: [{
+      label: 'AND',
+      value: 'AND'
+    }, {
+      label: 'OR',
+      value: 'OR'
+    }],
+    getPopupContainer: function getPopupContainer(triggerNode) {
+      return triggerNode.parentElement;
+    },
+    onChange: handleChangeDependencyRule,
+    allowClear: true
+  }))), dependencies === null || dependencies === void 0 ? void 0 : dependencies.map(function (dependency, di) {
     return /*#__PURE__*/React__default.createElement(SettingSkipLogic, {
       key: "dependency-" + id + "-" + di,
       dependency: dependency,
