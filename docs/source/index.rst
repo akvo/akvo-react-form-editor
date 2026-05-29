@@ -34,8 +34,8 @@ Survey Editor for generating `akvo-react form <https://github.com/akvo/akvo-reac
 
    questions
 
-.. |Build Status| image:: https://akvo.semaphoreci.com/badges/akvo-react-form-editor/branches/main.svg?style=shields
-   :target: https://akvo.semaphoreci.com/projects/akvo-react-form-editor
+.. |Build Status| image:: https://github.com/akvo/akvo-react-form-editor/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/akvo/akvo-react-form-editor/actions/workflows/ci.yml
 .. |Repo Size| image:: https://img.shields.io/github/repo-size/akvo/akvo-react-form-editor
    :target: https://img.shields.io/github/repo-size/akvo/akvo-react-form-editor
 .. |Languages| image:: https://img.shields.io/github/languages/count/akvo/akvo-react-form-editor

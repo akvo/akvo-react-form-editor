@@ -1,0 +1,44 @@
+name: Publish to npm
+
+# Publishing is driven by the GitHub Release feature, replacing the old
+# Semaphore v*-tag-prefix check.
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # registry-url makes setup-node write an .npmrc that reads the
+      # token from NODE_AUTH_TOKEN at publish time.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: yarn
+          registry-url: https://registry.npmjs.org
+
+      # The package's `prepare` script (run-s build) produces dist/,
+      # the only published path (files: ["dist"]).
+      - name: Install dependencies (builds dist/ via prepare)
+        run: yarn install --frozen-lockfile
+
+      # Guard against a forgotten version bump: the release tag (e.g.
+      # v2.0.2, leading v stripped) must equal package.json's version.
+      - name: Verify tag matches package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          echo "Release tag version : $TAG_VERSION"
+          echo "package.json version: $PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Release tag ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
