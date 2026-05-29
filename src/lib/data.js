@@ -78,6 +78,26 @@ const toEditor = (webFormData) => {
       ) {
         q = mapKeys(q, (_, k) => (k === 'option' ? 'options' : k));
       }
+      // Phase 3.1 — normalize center from {lat,lng} object to [lat,lng] array
+      if (q?.center && !Array.isArray(q.center)) {
+        q = { ...q, center: [q.center.lat, q.center.lng] };
+      }
+      // Phase 3.2 — map entity extra → internal entityExtra
+      if (
+        q.type === questionType.cascade &&
+        q?.extra &&
+        !Array.isArray(q.extra) &&
+        q.extra?.type === 'entity'
+      ) {
+        q = {
+          ...q,
+          entityExtra: {
+            name: q.extra.name,
+            parentId: q.extra.parentId,
+          },
+        };
+        q = clearQuestionObj(['extra'], q);
+      }
       if (q?.options) {
         const options = q.options.map((o, oi) => ({
           id: o?.id || qi + 1 + (oi + 1),
@@ -144,7 +164,11 @@ const toWebform = (formData, questionGroups) => {
       if (q.type !== questionType.input) {
         q = clearQuestionObj(['requiredDoubleEntry', 'hiddenString'], q);
       }
-      if (q.type !== questionType.number && q.type !== questionType.date) {
+      if (
+        q.type !== questionType.number &&
+        q.type !== questionType.date &&
+        q.type !== questionType.attachment
+      ) {
         q = clearQuestionObj(['rule'], q);
       }
       if (
@@ -161,7 +185,37 @@ const toWebform = (formData, questionGroups) => {
       if (isNotOption) {
         q = clearQuestionObj(['allowOther'], q);
       }
+      // Phase 3.4 — entity extra mapping (cascade only)
+      if (q.type === questionType.cascade && q?.entityExtra) {
+        q = {
+          ...q,
+          extra: {
+            type: 'entity',
+            name: q.entityExtra.name,
+            parentId: q.entityExtra.parentId,
+          },
+        };
+      }
+      q = clearQuestionObj(['entityExtra'], q);
+      // Phase 3.5 — strip partialRequired from non-cascade types
       if (q.type !== questionType.cascade) {
+        q = clearQuestionObj(['partialRequired'], q);
+      }
+      // Phase 3.7 — strip response_key from non-attachment api
+      if (
+        q.type !== questionType.attachment &&
+        q?.api &&
+        Object.prototype.hasOwnProperty.call(q.api, 'response_key')
+      ) {
+        // eslint-disable-next-line no-unused-vars
+        const { response_key, ...restApi } = q.api;
+        q = { ...q, api: restApi };
+      }
+      // Only cascade and attachment keep `api`; strip from everything else
+      if (
+        q.type !== questionType.cascade &&
+        q.type !== questionType.attachment
+      ) {
         q = clearQuestionObj(['api'], q);
       }
       if (q.type !== questionType.tree && isNotOption) {
@@ -169,6 +223,26 @@ const toWebform = (formData, questionGroups) => {
       }
       if (q.type !== questionType.table) {
         q = clearQuestionObj(['columns'], q);
+      }
+      // Phase 3.3 — geo center cleanup
+      const geoTypes = [
+        questionType.geo,
+        questionType.geotrace,
+        questionType.geoshape,
+      ];
+      if (!geoTypes.includes(q.type)) {
+        q = clearQuestionObj(['center'], q);
+      } else if (q?.center) {
+        const [lat, lng] = q.center;
+        const latEmpty = lat === null || typeof lat === 'undefined';
+        const lngEmpty = lng === null || typeof lng === 'undefined';
+        if (latEmpty && lngEmpty) {
+          q = clearQuestionObj(['center'], q);
+        }
+      }
+      // Phase 3.6 — strip tree-only fields from non-tree types
+      if (q.type !== questionType.tree) {
+        q = clearQuestionObj(['checkStrategy', 'expandAll'], q);
       }
       if (!q?.tooltip) {
         q = clearQuestionObj(['tooltip'], q);
@@ -210,6 +284,18 @@ const toWebform = (formData, questionGroups) => {
       result = {
         ...result,
         repeatText: qg.repeatText,
+      };
+    }
+    if (qg?.leading_question) {
+      result = {
+        ...result,
+        leading_question: qg.leading_question,
+      };
+    }
+    if (qg?.show_repeat_in_question_level) {
+      result = {
+        ...result,
+        show_repeat_in_question_level: qg.show_repeat_in_question_level,
       };
     }
     if (qg?.description) {

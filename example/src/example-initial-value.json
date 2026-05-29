@@ -653,6 +653,8 @@
       "order": 3,
       "repeatable": true,
       "repeatText": "Repeat text",
+      "leading_question": 19,
+      "show_repeat_in_question_level": true,
       "translations": [
         {
           "name": "Pertanyaan Lain",
@@ -694,6 +696,7 @@
           "name": "job_title",
           "order": 2,
           "type": "option",
+          "is_repeat_identifier": true,
           "option": [
             {
               "label": "Director",
@@ -923,6 +926,104 @@
           "type": "input",
           "required": false,
           "displayOnly": true
+        }
+      ]
+    },
+    {
+      "label": "Extended Question Types",
+      "name": "extended_question_types",
+      "order": 5,
+      "question": [
+        {
+          "id": 30,
+          "label": "Geo Trace",
+          "name": "geo_trace",
+          "order": 1,
+          "type": "geotrace",
+          "center": {
+            "lat": -6.2088,
+            "lng": 106.8456
+          },
+          "required": false
+        },
+        {
+          "id": 31,
+          "label": "Geo Shape",
+          "name": "geo_shape",
+          "order": 2,
+          "type": "geoshape",
+          "center": {
+            "lat": -6.2088,
+            "lng": 106.8456
+          },
+          "required": false
+        },
+        {
+          "id": 32,
+          "label": "Signature",
+          "name": "signature",
+          "order": 3,
+          "type": "signature",
+          "required": false
+        },
+        {
+          "id": 33,
+          "label": "File Attachment",
+          "name": "file_attachment",
+          "order": 4,
+          "type": "attachment",
+          "rule": {
+            "allowedFileTypes": ["pdf", "docx", "xlsx", "jpg", "png"]
+          },
+          "api": {
+            "endpoint": "https://your-upload-endpoint.example.com/upload",
+            "response_key": "file_url"
+          },
+          "required": false
+        },
+        {
+          "id": 34,
+          "label": "Entity Cascade",
+          "name": "entity_cascade",
+          "order": 5,
+          "type": "cascade",
+          "api": {
+            "endpoint": "https://akvo.github.io/akvo-react-form/api/entities/1/"
+          },
+          "extra": {
+            "type": "entity",
+            "name": "School",
+            "parentId": 30
+          },
+          "required": false
+        },
+        {
+          "id": 35,
+          "label": "Disabled Question",
+          "name": "disabled_question",
+          "order": 6,
+          "type": "input",
+          "required": false,
+          "disabled": true
+        },
+        {
+          "id": 36,
+          "label": "Show when both conditions met (AND rule)",
+          "name": "dependency_rule_example",
+          "order": 7,
+          "type": "input",
+          "required": false,
+          "dependency": [
+            {
+              "id": 30,
+              "min": 1
+            },
+            {
+              "id": 31,
+              "min": 1
+            }
+          ],
+          "dependency_rule": "AND"
         }
       ]
     }

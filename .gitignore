@@ -4,3 +4,8 @@ npm-debug.log
 .env
 .DS_Store
 ARFE - Updates.md
+# Added by code-review-graph
+.code-review-graph/
+# Claude Code internal files
+.claude/
+.mcp.json

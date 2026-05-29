@@ -30,6 +30,8 @@ import {
   SettingTable,
   SettingImage,
   SettingAutofield,
+  SettingGeo,
+  SettingAttachment,
 } from './question-type';
 import QuestionHint from './QuestionHint';
 import QuestionStats from './QuestionStats';
@@ -52,6 +54,8 @@ const QuestionSetting = ({ question, dependant }) => {
     questionGroupId,
     meta,
     displayOnly,
+    disabled,
+    is_repeat_identifier,
     disableDelete,
   } = question;
   const namePreffix = `question-${id}`;
@@ -122,10 +126,20 @@ const QuestionSetting = ({ question, dependant }) => {
       (qg) => qg.id === questionGroupId
     );
     return (
-      ![questionType.tree, questionType.table].includes(type) &&
-      !currentQuestionGroup?.repeatable
+      ![
+        questionType.tree,
+        questionType.table,
+        questionType.geotrace,
+        questionType.geoshape,
+        questionType.signature,
+        questionType.attachment,
+      ].includes(type) && !currentQuestionGroup?.repeatable
     );
   }, [type, questionGroups, questionGroupId]);
+
+  const isInRepeatableGroup = useMemo(() => {
+    return !!questionGroups.find((qg) => qg.id === questionGroupId)?.repeatable;
+  }, [questionGroups, questionGroupId]);
 
   const questionTypeDropdownValue = useMemo(() => {
     if (limitQuestionType && limitQuestionType?.length) {
@@ -260,6 +274,14 @@ const QuestionSetting = ({ question, dependant }) => {
 
   const handleChangeMeta = (e) => {
     updateState('meta', e?.target?.checked);
+  };
+
+  const handleChangeDisabled = (e) => {
+    updateState('disabled', e?.target?.checked);
+  };
+
+  const handleChangeIsRepeatIdentifier = (e) => {
+    updateState('is_repeat_identifier', e?.target?.checked);
   };
 
   const dependantGroup = map(
@@ -459,6 +481,36 @@ const QuestionSetting = ({ question, dependant }) => {
             </Tooltip>
           </Form.Item>
         </Col>
+        <Col>
+          <Form.Item
+            name={`${namePreffix}-disabled`}
+            className={styles['input-checkbox-wrapper']}
+          >
+            <Checkbox
+              onChange={handleChangeDisabled}
+              checked={disabled}
+            >
+              {' '}
+              {UIText.inputQuestionDisabledCheckbox}
+            </Checkbox>
+          </Form.Item>
+        </Col>
+        {isInRepeatableGroup && (
+          <Col>
+            <Form.Item
+              name={`${namePreffix}-is_repeat_identifier`}
+              className={styles['input-checkbox-wrapper']}
+            >
+              <Checkbox
+                onChange={handleChangeIsRepeatIdentifier}
+                checked={is_repeat_identifier}
+              >
+                {' '}
+                {UIText.inputQuestionIsRepeatIdentifierCheckbox}
+              </Checkbox>
+            </Form.Item>
+          </Col>
+        )}
         {showMetaCheckbox && (
           <Col>
             <div>
@@ -505,6 +557,12 @@ const QuestionSetting = ({ question, dependant }) => {
       {qType === questionType.table && <SettingTable {...question} />}
       {qType === questionType.image && <SettingImage {...question} />}
       {qType === questionType.autofield && <SettingAutofield {...question} />}
+      {[
+        questionType.geo,
+        questionType.geotrace,
+        questionType.geoshape,
+      ].includes(qType) && <SettingGeo {...question} />}
+      {qType === questionType.attachment && <SettingAttachment {...question} />}
       {/* Question Stats  */}
       <QuestionStats {...question} />
     </div>

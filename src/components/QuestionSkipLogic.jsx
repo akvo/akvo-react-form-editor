@@ -466,6 +466,7 @@ const QuestionSkipLogic = ({ question }) => {
     id,
     questionGroupId,
     dependency,
+    dependency_rule,
     order: currentQuestionOrder,
   } = question;
   const UIText = UIStore.useState((s) => s.UIText);
@@ -513,6 +514,23 @@ const QuestionSkipLogic = ({ question }) => {
       });
   }, [questions, questionGroups]);
 
+  const handleChangeDependencyRule = (value) => {
+    questionGroupFn.store.update((s) => {
+      s.questionGroups = s.questionGroups.map((qg) => {
+        if (qg.id === questionGroupId) {
+          const questions = qg.questions.map((q) => {
+            if (q.id === id) {
+              return { ...q, dependency_rule: value };
+            }
+            return q;
+          });
+          return { ...qg, questions };
+        }
+        return qg;
+      });
+    });
+  };
+
   if (!dependencies?.[0]?.dependentTo && !dependentToQuestions?.length) {
     return (
       <Alert
@@ -526,6 +544,26 @@ const QuestionSkipLogic = ({ question }) => {
 
   return (
     <Row gutter={[24, 24]}>
+      {dependency?.length >= 2 && (
+        <Col span={24}>
+          <Form.Item
+            label={UIText.inputDependencyRuleLabel}
+            name={`question-${id}-dependency_rule`}
+            initialValue={dependency_rule}
+          >
+            <Select
+              className={styles['select-dropdown']}
+              options={[
+                { label: 'AND', value: 'AND' },
+                { label: 'OR', value: 'OR' },
+              ]}
+              getPopupContainer={(triggerNode) => triggerNode.parentElement}
+              onChange={handleChangeDependencyRule}
+              allowClear
+            />
+          </Form.Item>
+        </Col>
+      )}
       {dependencies?.map((dependency, di) => (
         <SettingSkipLogic
           key={`dependency-${id}-${di}`}
