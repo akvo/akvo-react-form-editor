@@ -2404,7 +2404,7 @@ var toWebform = function toWebform(formData, questionGroups) {
 
   var output = questionGroups.map(function (qg) {
     var questions = qg.questions.map(function (q) {
-      var _q6, _q7, _q8, _q9, _q10, _q11, _q12, _q13, _q13$hint, _q14, _q14$hint, _q15, _q15$hint, _q15$hint$path;
+      var _q6, _q7, _q8, _q9, _q10, _q11, _q12, _q13, _q14, _q15, _q15$hint, _q16, _q16$hint, _q17, _q17$hint, _q17$hint$path;
 
       var isNotOption = ![questionType.option, questionType.multiple_option].includes(q.type);
 
@@ -2494,7 +2494,11 @@ var toWebform = function toWebform(formData, questionGroups) {
         q = clearQuestionObj(['tooltip'], q);
       }
 
-      if ((_q10 = q) !== null && _q10 !== void 0 && _q10.dependency) {
+      if (!((_q10 = q) !== null && _q10 !== void 0 && _q10.pre) || isEmpty((_q11 = q) === null || _q11 === void 0 ? void 0 : _q11.pre)) {
+        q = clearQuestionObj(['pre'], q);
+      }
+
+      if ((_q12 = q) !== null && _q12 !== void 0 && _q12.dependency) {
         var dependency = q.dependency.map(function (d) {
           var _d3, _d4;
 
@@ -2517,11 +2521,11 @@ var toWebform = function toWebform(formData, questionGroups) {
         });
       }
 
-      if ((_q11 = q) !== null && _q11 !== void 0 && _q11.translations) {
+      if ((_q13 = q) !== null && _q13 !== void 0 && _q13.translations) {
         q = clearTranslations(q, q.translations);
       }
 
-      if ((_q12 = q) !== null && _q12 !== void 0 && _q12.hint && !((_q13 = q) !== null && _q13 !== void 0 && (_q13$hint = _q13.hint) !== null && _q13$hint !== void 0 && _q13$hint["static"]) && (!((_q14 = q) !== null && _q14 !== void 0 && (_q14$hint = _q14.hint) !== null && _q14$hint !== void 0 && _q14$hint.endpoint) || !((_q15 = q) !== null && _q15 !== void 0 && (_q15$hint = _q15.hint) !== null && _q15$hint !== void 0 && (_q15$hint$path = _q15$hint.path) !== null && _q15$hint$path !== void 0 && _q15$hint$path.length))) {
+      if ((_q14 = q) !== null && _q14 !== void 0 && _q14.hint && !((_q15 = q) !== null && _q15 !== void 0 && (_q15$hint = _q15.hint) !== null && _q15$hint !== void 0 && _q15$hint["static"]) && (!((_q16 = q) !== null && _q16 !== void 0 && (_q16$hint = _q16.hint) !== null && _q16$hint !== void 0 && _q16$hint.endpoint) || !((_q17 = q) !== null && _q17 !== void 0 && (_q17$hint = _q17.hint) !== null && _q17$hint !== void 0 && (_q17$hint$path = _q17$hint.path) !== null && _q17$hint$path !== void 0 && _q17$hint$path.length))) {
         q = clearQuestionObj(['hint'], q);
       }
 
