@@ -204,6 +204,90 @@ describe('data.toWebform (Phase 3)', () => {
     });
   });
 
+  describe('pre cleanup (prevents OptionField infinite render loop)', () => {
+    test('strips empty pre object', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'option',
+        label: 'L',
+        name: 'l',
+        pre: {},
+        options: [{ id: 1, value: 'yes', label: 'Yes', order: 1 }],
+      });
+      const out = data.toWebform(formData, questionGroups);
+      const q = findQ(out);
+      expect(q.pre).toBeUndefined();
+      expect('pre' in q).toBe(false);
+    });
+
+    test('omits pre when key absent', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'option',
+        label: 'L',
+        name: 'l',
+        options: [{ id: 1, value: 'yes', label: 'Yes', order: 1 }],
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).pre).toBeUndefined();
+    });
+
+    test('preserves non-empty pre verbatim', () => {
+      const pre = { are_you_okay: { yes: ['happy'] } };
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'multiple_option',
+        label: 'L',
+        name: 'l',
+        pre,
+        options: [{ id: 1, value: 'happy', label: 'Happy', order: 1 }],
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).pre).toEqual(pre);
+    });
+
+    test('mixed form drops empty pre but keeps populated pre', () => {
+      const formData = { id: 1, name: 'F', description: 'D' };
+      const populated = { q1: { yes: ['happy'] } };
+      const questionGroups = [
+        {
+          id: 10,
+          label: 'G',
+          name: 'g',
+          order: 1,
+          repeatable: false,
+          questions: [
+            {
+              id: 100,
+              order: 1,
+              type: 'option',
+              label: 'A',
+              name: 'a',
+              pre: {},
+              options: [{ id: 1, value: 'yes', label: 'Yes', order: 1 }],
+            },
+            {
+              id: 101,
+              order: 2,
+              type: 'multiple_option',
+              label: 'B',
+              name: 'b',
+              pre: populated,
+              options: [{ id: 2, value: 'happy', label: 'Happy', order: 1 }],
+            },
+          ],
+        },
+      ];
+      const out = data.toWebform(formData, questionGroups);
+      const [qa, qb] = out.question_group[0].question;
+      expect(qa.pre).toBeUndefined();
+      expect(qb.pre).toEqual(populated);
+    });
+  });
+
   describe('entity extra mapping', () => {
     test('cascade with entityExtra writes extra: {type:entity, ...} and strips entityExtra', () => {
       const { formData, questionGroups } = editorWithQuestion({

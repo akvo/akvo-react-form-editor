@@ -247,6 +247,9 @@ const toWebform = (formData, questionGroups) => {
       if (!q?.tooltip) {
         q = clearQuestionObj(['tooltip'], q);
       }
+      if (!q?.pre || isEmpty(q?.pre)) {
+        q = clearQuestionObj(['pre'], q);
+      }
       if (q?.dependency) {
         const dependency = q.dependency.map((d) => {
           if (d?.max) {
