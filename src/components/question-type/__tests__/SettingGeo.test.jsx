@@ -94,6 +94,26 @@ describe('SettingGeo geoConfig panel (GEO-009)', () => {
     });
   });
 
+  describe('restoring state on reopen', () => {
+    test('restores the accuracy threshold from extra.geoConfig', () => {
+      renderSetting({
+        type: 'geoshape',
+        extra: { geoConfig: { accuracyThreshold: 25 } },
+      });
+      expect(screen.getByLabelText('GPS accuracy threshold (m)')).toHaveValue(
+        '25'
+      );
+    });
+
+    test('restores the overlap threshold from extra.geoConfig', () => {
+      renderSetting({
+        type: 'geoshape',
+        extra: { geoConfig: { detectOverlaps: true, overlapThreshold: 30 } },
+      });
+      expect(screen.getByLabelText('Overlap threshold (%)')).toHaveValue('30');
+    });
+  });
+
   describe('writes numbers under extra.geoConfig', () => {
     test('accuracy threshold is stored as a number', async () => {
       renderSetting({ type: 'geoshape' });
