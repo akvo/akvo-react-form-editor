@@ -86,6 +86,25 @@ describe('data.toEditor (Phase 3)', () => {
     });
   });
 
+  describe('geoConfig passthrough (GEO-009)', () => {
+    test('geoConfig on a geoshape question reaches the editor intact', () => {
+      const webform = wfWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'geoshape',
+        name: 'plot',
+        label: 'Plot',
+        extra: { geoConfig: { accuracyThreshold: 25, detectOverlaps: true } },
+      });
+      const out = data.toEditor(webform);
+      const q = out.questionGroups[0].questions[0];
+      expect(q.extra.geoConfig).toEqual({
+        accuracyThreshold: 25,
+        detectOverlaps: true,
+      });
+    });
+  });
+
   describe('entity extra mapping', () => {
     test('cascade with extra.type="entity" maps to entityExtra and removes extra', () => {
       const webform = wfWithQuestion({
@@ -201,6 +220,104 @@ describe('data.toWebform (Phase 3)', () => {
       });
       const out = data.toWebform(formData, questionGroups);
       expect(findQ(out).center).toBeUndefined();
+    });
+  });
+
+  describe('geoConfig cleanup (GEO-009)', () => {
+    const geoConfig = {
+      accuracyThreshold: 15,
+      detectOverlaps: true,
+      overlapThreshold: 20,
+    };
+
+    test('keeps geoConfig on a geoshape question', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'geoshape',
+        name: 'plot',
+        label: 'Plot',
+        extra: { geoConfig: geoConfig },
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).extra.geoConfig).toEqual(geoConfig);
+    });
+
+    test('strips geoConfig from a geotrace question', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'geotrace',
+        name: 'route',
+        label: 'Route',
+        extra: { geoConfig: geoConfig },
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).extra).toBeUndefined();
+    });
+
+    test('strips geoConfig from a text question', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'text',
+        name: 'note',
+        label: 'Note',
+        extra: { geoConfig: geoConfig },
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).extra).toBeUndefined();
+    });
+
+    test('drops an empty geoConfig rather than emitting {}', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'geoshape',
+        name: 'plot',
+        label: 'Plot',
+        extra: { geoConfig: {} },
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).extra).toBeUndefined();
+    });
+
+    test('keeps detectOverlaps false, which is not an empty config', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'geoshape',
+        name: 'plot',
+        label: 'Plot',
+        extra: { geoConfig: { detectOverlaps: false } },
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).extra.geoConfig).toEqual({ detectOverlaps: false });
+    });
+
+    test('a geoshape question with no extra does not gain one', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'geoshape',
+        name: 'plot',
+        label: 'Plot',
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).extra).toBeUndefined();
+    });
+
+    test('an unrelated extra key survives the geoConfig strip', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'text',
+        name: 'note',
+        label: 'Note',
+        extra: { somethingElse: 'keep me', geoConfig: geoConfig },
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).extra).toEqual({ somethingElse: 'keep me' });
     });
   });
 

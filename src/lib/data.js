@@ -240,6 +240,22 @@ const toWebform = (formData, questionGroups) => {
           q = clearQuestionObj(['center'], q);
         }
       }
+      // geoConfig is authored on geoshape only (GEO-009). A question whose
+      // type changed after it was configured would otherwise ship an orphan
+      // geoConfig that no consumer reads and that contradicts the question
+      // it sits on. Edit `extra` in place rather than replacing it: the
+      // cascade entity mapping above writes type/name/parentId into the
+      // same object.
+      if (q?.extra && !Array.isArray(q.extra)) {
+        const keepGeoConfig =
+          q.type === questionType.geoshape && !isEmpty(q.extra.geoConfig);
+        const extra = keepGeoConfig
+          ? q.extra
+          : clearQuestionObj(['geoConfig'], q.extra);
+        q = isEmpty(extra)
+          ? clearQuestionObj(['extra'], q)
+          : { ...q, extra: extra };
+      }
       // Phase 3.6 — strip tree-only fields from non-tree types
       if (q.type !== questionType.tree) {
         q = clearQuestionObj(['checkStrategy', 'expandAll'], q);
