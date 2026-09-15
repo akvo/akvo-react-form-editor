@@ -225,6 +225,12 @@ var UIStaticText = {
     questionMoreGeoSettingText: 'Set the default map center (optional)',
     inputGeoLatitudeLabel: 'Latitude',
     inputGeoLongitudeLabel: 'Longitude',
+    questionGeoConfigSettingText: 'Polygon capture and validation',
+    inputGeoAccuracyThresholdLabel: 'GPS accuracy threshold (m)',
+    inputGeoAccuracyThresholdTooltip: 'While auto-recording a boundary, GPS fixes less accurate than this are discarded instead of added to the shape.',
+    inputGeoDetectOverlapsCheckbox: 'Detect overlaps with other answers to this question',
+    inputGeoDetectOverlapsHint: 'Enabling this syncs the geometry of every other response to this question onto the device.',
+    inputGeoOverlapThresholdLabel: 'Overlap threshold (%)',
     questionMoreAttachmentSettingText: 'More Attachment Question Setting',
     inputAllowedFileTypesLabel: 'Allowed File Types',
     inputAttachmentEndpointLabel: 'Attachment Endpoint',
@@ -2407,7 +2413,7 @@ var toWebform = function toWebform(formData, questionGroups) {
 
   var output = questionGroups.map(function (qg) {
     var questions = qg.questions.map(function (q) {
-      var _q6, _q7, _q8, _q9, _q10, _q11, _q12, _q13, _q14, _q15, _q15$hint, _q16, _q16$hint, _q17, _q17$hint, _q17$hint$path;
+      var _q6, _q7, _q8, _q9, _q10, _q11, _q12, _q13, _q14, _q15, _q16, _q16$hint, _q17, _q17$hint, _q18, _q18$hint, _q18$hint$path;
 
       var isNotOption = ![questionType.option, questionType.multiple_option].includes(q.type);
 
@@ -2489,19 +2495,27 @@ var toWebform = function toWebform(formData, questionGroups) {
         }
       }
 
+      if ((_q9 = q) !== null && _q9 !== void 0 && _q9.extra && !Array.isArray(q.extra)) {
+        var keepGeoConfig = q.type === questionType.geoshape && !lodash.isEmpty(q.extra.geoConfig);
+        var extra = keepGeoConfig ? q.extra : clearQuestionObj(['geoConfig'], q.extra);
+        q = lodash.isEmpty(extra) ? clearQuestionObj(['extra'], q) : _extends({}, q, {
+          extra: extra
+        });
+      }
+
       if (q.type !== questionType.tree) {
         q = clearQuestionObj(['checkStrategy', 'expandAll'], q);
       }
 
-      if (!((_q9 = q) !== null && _q9 !== void 0 && _q9.tooltip)) {
+      if (!((_q10 = q) !== null && _q10 !== void 0 && _q10.tooltip)) {
         q = clearQuestionObj(['tooltip'], q);
       }
 
-      if (!((_q10 = q) !== null && _q10 !== void 0 && _q10.pre) || lodash.isEmpty((_q11 = q) === null || _q11 === void 0 ? void 0 : _q11.pre)) {
+      if (!((_q11 = q) !== null && _q11 !== void 0 && _q11.pre) || lodash.isEmpty((_q12 = q) === null || _q12 === void 0 ? void 0 : _q12.pre)) {
         q = clearQuestionObj(['pre'], q);
       }
 
-      if ((_q12 = q) !== null && _q12 !== void 0 && _q12.dependency) {
+      if ((_q13 = q) !== null && _q13 !== void 0 && _q13.dependency) {
         var dependency = q.dependency.map(function (d) {
           var _d3, _d4;
 
@@ -2524,11 +2538,11 @@ var toWebform = function toWebform(formData, questionGroups) {
         });
       }
 
-      if ((_q13 = q) !== null && _q13 !== void 0 && _q13.translations) {
+      if ((_q14 = q) !== null && _q14 !== void 0 && _q14.translations) {
         q = clearTranslations(q, q.translations);
       }
 
-      if ((_q14 = q) !== null && _q14 !== void 0 && _q14.hint && !((_q15 = q) !== null && _q15 !== void 0 && (_q15$hint = _q15.hint) !== null && _q15$hint !== void 0 && _q15$hint["static"]) && (!((_q16 = q) !== null && _q16 !== void 0 && (_q16$hint = _q16.hint) !== null && _q16$hint !== void 0 && _q16$hint.endpoint) || !((_q17 = q) !== null && _q17 !== void 0 && (_q17$hint = _q17.hint) !== null && _q17$hint !== void 0 && (_q17$hint$path = _q17$hint.path) !== null && _q17$hint$path !== void 0 && _q17$hint$path.length))) {
+      if ((_q15 = q) !== null && _q15 !== void 0 && _q15.hint && !((_q16 = q) !== null && _q16 !== void 0 && (_q16$hint = _q16.hint) !== null && _q16$hint !== void 0 && _q16$hint["static"]) && (!((_q17 = q) !== null && _q17 !== void 0 && (_q17$hint = _q17.hint) !== null && _q17$hint !== void 0 && _q17$hint.endpoint) || !((_q18 = q) !== null && _q18 !== void 0 && (_q18$hint = _q18.hint) !== null && _q18$hint !== void 0 && (_q18$hint$path = _q18$hint.path) !== null && _q18$hint$path !== void 0 && _q18$hint$path.length))) {
         q = clearQuestionObj(['hint'], q);
       }
 
@@ -11461,31 +11475,30 @@ var SettingAutofield = function SettingAutofield(_ref) {
   }));
 };
 
+var Text$4 = antd.Typography.Text;
+
 var SettingGeo = function SettingGeo(_ref) {
   var id = _ref.id,
       questionGroupId = _ref.questionGroupId,
-      center = _ref.center;
+      center = _ref.center,
+      type = _ref.type,
+      extra = _ref.extra;
   var namePreffix = "question-" + id;
   var UIText = UIStore.useState(function (s) {
     return s.UIText;
   });
   var lat = Array.isArray(center) ? center[0] : null;
   var lng = Array.isArray(center) ? center[1] : null;
+  var showGeoConfig = type === questionType.geoshape;
+  var geoConfig = extra === null || extra === void 0 ? void 0 : extra.geoConfig;
+  var detectOverlaps = !!(geoConfig !== null && geoConfig !== void 0 && geoConfig.detectOverlaps);
 
-  var updateCenter = function updateCenter(index, value) {
+  var updateQuestion = function updateQuestion(mapper) {
     questionGroupFn.store.update(function (s) {
       s.questionGroups = s.questionGroups.map(function (qg) {
         if (qg.id === questionGroupId) {
           var questions = qg.questions.map(function (q) {
-            if (q.id === id) {
-              var current = Array.isArray(q.center) ? [].concat(q.center) : [null, null];
-              current[index] = value;
-              return _extends({}, q, {
-                center: current
-              });
-            }
-
-            return q;
+            return q.id === id ? mapper(q) : q;
           });
           return _extends({}, qg, {
             questions: questions
@@ -11493,6 +11506,36 @@ var SettingGeo = function SettingGeo(_ref) {
         }
 
         return qg;
+      });
+    });
+  };
+
+  var updateCenter = function updateCenter(index, value) {
+    updateQuestion(function (q) {
+      var current = Array.isArray(q.center) ? [].concat(q.center) : [null, null];
+      current[index] = value;
+      return _extends({}, q, {
+        center: current
+      });
+    });
+  };
+
+  var updateGeoConfig = function updateGeoConfig(key, value) {
+    updateQuestion(function (q) {
+      var _q$extra;
+
+      var nextConfig = _extends({}, q === null || q === void 0 ? void 0 : (_q$extra = q.extra) === null || _q$extra === void 0 ? void 0 : _q$extra.geoConfig);
+
+      if (value === null || typeof value === 'undefined') {
+        delete nextConfig[key];
+      } else {
+        nextConfig[key] = value;
+      }
+
+      return _extends({}, q, {
+        extra: _extends({}, q === null || q === void 0 ? void 0 : q.extra, {
+          geoConfig: nextConfig
+        })
       });
     });
   };
@@ -11532,7 +11575,74 @@ var SettingGeo = function SettingGeo(_ref) {
     onChange: function onChange(v) {
       return updateCenter(1, v);
     }
-  })))));
+  })))), showGeoConfig && /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("p", {
+    className: styles['more-question-setting-text']
+  }, UIText.questionGeoConfigSettingText), /*#__PURE__*/React__default.createElement(antd.Row, {
+    align: "middle",
+    gutter: [24, 24]
+  }, /*#__PURE__*/React__default.createElement(antd.Col, {
+    span: 8
+  }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: /*#__PURE__*/React__default.createElement(antd.Space, {
+      align: "center"
+    }, /*#__PURE__*/React__default.createElement("div", null, UIText.inputGeoAccuracyThresholdLabel), /*#__PURE__*/React__default.createElement(antd.Tooltip, {
+      title: UIText.inputGeoAccuracyThresholdTooltip,
+      placement: "right"
+    }, /*#__PURE__*/React__default.createElement(ai.AiOutlineQuestionCircle, {
+      style: {
+        marginBottom: '-2px'
+      },
+      size: 16
+    }))),
+    name: namePreffix + "-geo_accuracy_threshold",
+    initialValue: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.accuracyThreshold
+  }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+    style: {
+      width: '100%'
+    },
+    min: 1,
+    precision: 0,
+    controls: false,
+    keyboard: false,
+    onChange: function onChange(v) {
+      return updateGeoConfig('accuracyThreshold', v);
+    }
+  })))), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    name: namePreffix + "-geo_detect_overlaps",
+    className: styles['input-checkbox-wrapper']
+  }, /*#__PURE__*/React__default.createElement(antd.Checkbox, {
+    onChange: function onChange(e) {
+      var _e$target;
+
+      return updateGeoConfig('detectOverlaps', !!(e !== null && e !== void 0 && (_e$target = e.target) !== null && _e$target !== void 0 && _e$target.checked));
+    },
+    checked: detectOverlaps
+  }, ' ', UIText.inputGeoDetectOverlapsCheckbox)), /*#__PURE__*/React__default.createElement("div", {
+    className: styles['field-error-wrapper']
+  }, /*#__PURE__*/React__default.createElement(Text$4, {
+    type: "warning"
+  }, UIText.inputGeoDetectOverlapsHint)), detectOverlaps && /*#__PURE__*/React__default.createElement(antd.Row, {
+    align: "middle",
+    gutter: [24, 24]
+  }, /*#__PURE__*/React__default.createElement(antd.Col, {
+    span: 8
+  }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
+    label: UIText.inputGeoOverlapThresholdLabel,
+    name: namePreffix + "-geo_overlap_threshold",
+    initialValue: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.overlapThreshold
+  }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+    style: {
+      width: '100%'
+    },
+    min: 1,
+    max: 100,
+    precision: 0,
+    controls: false,
+    keyboard: false,
+    onChange: function onChange(v) {
+      return updateGeoConfig('overlapThreshold', v);
+    }
+  }))))));
 };
 
 var allowedFileTypeOptions = [{
@@ -11912,7 +12022,7 @@ var QuestionStats = function QuestionStats(_ref) {
 };
 
 var questionTypeWithRule = ['number', 'date'];
-var Text$4 = antd.Typography.Text;
+var Text$5 = antd.Typography.Text;
 
 var QuestionSetting = function QuestionSetting(_ref) {
   var question = _ref.question,
@@ -12256,7 +12366,7 @@ var QuestionSetting = function QuestionSetting(_ref) {
     value: nameFieldValue
   })), currentQuestionNameError !== null && currentQuestionNameError !== void 0 && currentQuestionNameError.id ? /*#__PURE__*/React__default.createElement("div", {
     className: styles['field-error-wrapper']
-  }, /*#__PURE__*/React__default.createElement(Text$4, {
+  }, /*#__PURE__*/React__default.createElement(Text$5, {
     type: "danger"
   }, currentQuestionNameError.message)) : '', /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: /*#__PURE__*/React__default.createElement(antd.Space, {
