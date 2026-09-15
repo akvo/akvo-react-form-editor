@@ -35,3 +35,26 @@ describe('i18n English keys (Phase 2.2)', () => {
     expect(en.inputQuestionTypeLabel).toBe('Question Type');
   });
 });
+
+describe('i18n geoConfig keys (GEO-009)', () => {
+  const en = UIStaticText.en;
+
+  // Only the keys no test renders. SettingGeo.test.jsx asserts the section
+  // heading, both numeric labels and the checkbox by their rendered text, so
+  // a typo in those four already fails there.
+  const unrenderedKeys = [
+    'inputGeoAccuracyThresholdTooltip',
+    'inputGeoDetectOverlapsHint',
+  ];
+
+  test.each(unrenderedKeys)('has non-empty string for key "%s"', (key) => {
+    expect(en).toHaveProperty(key);
+    expect(typeof en[key]).toBe('string');
+    expect(en[key].length).toBeGreaterThan(0);
+  });
+
+  test('the overlap hint states the sync consequence', () => {
+    expect(en.inputGeoDetectOverlapsHint).toMatch(/sync/i);
+    expect(en.inputGeoDetectOverlapsHint).toMatch(/device/i);
+  });
+});

@@ -136,6 +136,15 @@ const UIStaticText = {
     questionMoreGeoSettingText: 'Set the default map center (optional)',
     inputGeoLatitudeLabel: 'Latitude',
     inputGeoLongitudeLabel: 'Longitude',
+    questionGeoConfigSettingText: 'Polygon capture and validation',
+    inputGeoAccuracyThresholdLabel: 'GPS accuracy threshold (m)',
+    inputGeoAccuracyThresholdTooltip:
+      'While auto-recording a boundary, GPS fixes less accurate than this are discarded instead of added to the shape.',
+    inputGeoDetectOverlapsCheckbox:
+      'Detect overlaps with other answers to this question',
+    inputGeoDetectOverlapsHint:
+      'Enabling this syncs the geometry of every other response to this question onto the device.',
+    inputGeoOverlapThresholdLabel: 'Overlap threshold (%)',
     questionMoreAttachmentSettingText: 'More Attachment Question Setting',
     inputAllowedFileTypesLabel: 'Allowed File Types',
     inputAttachmentEndpointLabel: 'Attachment Endpoint',
