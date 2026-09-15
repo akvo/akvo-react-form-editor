@@ -2413,7 +2413,7 @@ var toWebform = function toWebform(formData, questionGroups) {
 
   var output = questionGroups.map(function (qg) {
     var questions = qg.questions.map(function (q) {
-      var _q6, _q7, _q8, _q9, _q10, _q11, _q12, _q13, _q14, _q15, _q16, _q16$hint, _q17, _q17$hint, _q18, _q18$hint, _q18$hint$path;
+      var _q7, _q8, _q9, _q10, _q11, _q12, _q13, _q14, _q15, _q16, _q17, _q17$hint, _q18, _q18$hint, _q19, _q19$hint, _q19$hint$path;
 
       var isNotOption = ![questionType.option, questionType.multiple_option].includes(q.type);
 
@@ -2426,7 +2426,9 @@ var toWebform = function toWebform(formData, questionGroups) {
       }
 
       if ([questionType.option, questionType.multiple_option].includes(q.type)) {
-        var options = q.options.map(function (op) {
+        var _q6;
+
+        var options = (((_q6 = q) === null || _q6 === void 0 ? void 0 : _q6.options) || []).map(function (op) {
           if (op !== null && op !== void 0 && op.translations) {
             return clearTranslations(op, op.translations);
           }
@@ -2442,7 +2444,7 @@ var toWebform = function toWebform(formData, questionGroups) {
         q = clearQuestionObj(['allowOther'], q);
       }
 
-      if (q.type === questionType.cascade && (_q6 = q) !== null && _q6 !== void 0 && _q6.entityExtra) {
+      if (q.type === questionType.cascade && (_q7 = q) !== null && _q7 !== void 0 && _q7.entityExtra) {
         q = _extends({}, q, {
           extra: {
             type: 'entity',
@@ -2458,7 +2460,7 @@ var toWebform = function toWebform(formData, questionGroups) {
         q = clearQuestionObj(['partialRequired'], q);
       }
 
-      if (q.type !== questionType.attachment && (_q7 = q) !== null && _q7 !== void 0 && _q7.api && Object.prototype.hasOwnProperty.call(q.api, 'response_key')) {
+      if (q.type !== questionType.attachment && (_q8 = q) !== null && _q8 !== void 0 && _q8.api && Object.prototype.hasOwnProperty.call(q.api, 'response_key')) {
         var _q$api = q.api,
             restApi = _objectWithoutPropertiesLoose(_q$api, _excluded$2);
 
@@ -2483,7 +2485,7 @@ var toWebform = function toWebform(formData, questionGroups) {
 
       if (!geoTypes.includes(q.type)) {
         q = clearQuestionObj(['center'], q);
-      } else if ((_q8 = q) !== null && _q8 !== void 0 && _q8.center) {
+      } else if ((_q9 = q) !== null && _q9 !== void 0 && _q9.center) {
         var _q$center = q.center,
             lat = _q$center[0],
             lng = _q$center[1];
@@ -2495,7 +2497,7 @@ var toWebform = function toWebform(formData, questionGroups) {
         }
       }
 
-      if ((_q9 = q) !== null && _q9 !== void 0 && _q9.extra && !Array.isArray(q.extra)) {
+      if ((_q10 = q) !== null && _q10 !== void 0 && _q10.extra && !Array.isArray(q.extra)) {
         var keepGeoConfig = q.type === questionType.geoshape && !lodash.isEmpty(q.extra.geoConfig);
         var extra = keepGeoConfig ? q.extra : clearQuestionObj(['geoConfig'], q.extra);
         q = lodash.isEmpty(extra) ? clearQuestionObj(['extra'], q) : _extends({}, q, {
@@ -2507,15 +2509,15 @@ var toWebform = function toWebform(formData, questionGroups) {
         q = clearQuestionObj(['checkStrategy', 'expandAll'], q);
       }
 
-      if (!((_q10 = q) !== null && _q10 !== void 0 && _q10.tooltip)) {
+      if (!((_q11 = q) !== null && _q11 !== void 0 && _q11.tooltip)) {
         q = clearQuestionObj(['tooltip'], q);
       }
 
-      if (!((_q11 = q) !== null && _q11 !== void 0 && _q11.pre) || lodash.isEmpty((_q12 = q) === null || _q12 === void 0 ? void 0 : _q12.pre)) {
+      if (!((_q12 = q) !== null && _q12 !== void 0 && _q12.pre) || lodash.isEmpty((_q13 = q) === null || _q13 === void 0 ? void 0 : _q13.pre)) {
         q = clearQuestionObj(['pre'], q);
       }
 
-      if ((_q13 = q) !== null && _q13 !== void 0 && _q13.dependency) {
+      if ((_q14 = q) !== null && _q14 !== void 0 && _q14.dependency) {
         var dependency = q.dependency.map(function (d) {
           var _d3, _d4;
 
@@ -2538,11 +2540,11 @@ var toWebform = function toWebform(formData, questionGroups) {
         });
       }
 
-      if ((_q14 = q) !== null && _q14 !== void 0 && _q14.translations) {
+      if ((_q15 = q) !== null && _q15 !== void 0 && _q15.translations) {
         q = clearTranslations(q, q.translations);
       }
 
-      if ((_q15 = q) !== null && _q15 !== void 0 && _q15.hint && !((_q16 = q) !== null && _q16 !== void 0 && (_q16$hint = _q16.hint) !== null && _q16$hint !== void 0 && _q16$hint["static"]) && (!((_q17 = q) !== null && _q17 !== void 0 && (_q17$hint = _q17.hint) !== null && _q17$hint !== void 0 && _q17$hint.endpoint) || !((_q18 = q) !== null && _q18 !== void 0 && (_q18$hint = _q18.hint) !== null && _q18$hint !== void 0 && (_q18$hint$path = _q18$hint.path) !== null && _q18$hint$path !== void 0 && _q18$hint$path.length))) {
+      if ((_q16 = q) !== null && _q16 !== void 0 && _q16.hint && !((_q17 = q) !== null && _q17 !== void 0 && (_q17$hint = _q17.hint) !== null && _q17$hint !== void 0 && _q17$hint["static"]) && (!((_q18 = q) !== null && _q18 !== void 0 && (_q18$hint = _q18.hint) !== null && _q18$hint !== void 0 && _q18$hint.endpoint) || !((_q19 = q) !== null && _q19 !== void 0 && (_q19$hint = _q19.hint) !== null && _q19$hint !== void 0 && (_q19$hint$path = _q19$hint.path) !== null && _q19$hint$path !== void 0 && _q19$hint$path.length))) {
         q = clearQuestionObj(['hint'], q);
       }
 
@@ -11294,7 +11296,7 @@ var SettingAutofield = function SettingAutofield(_ref) {
       new Function("return " + functionBody)();
       ErrorStore.update(function (s) {
         s.questionErrors = s.questionErrors.filter(function (e) {
-          return e.id !== id && e.field !== 'autofield_fnString';
+          return !(e.id === id && e.field === 'autofield_fnString');
         });
       });
       setIsCorrect(true);
@@ -12107,7 +12109,7 @@ var QuestionSetting = function QuestionSetting(_ref) {
     } else {
       ErrorStore.update(function (s) {
         s.questionErrors = s.questionErrors.filter(function (e) {
-          return e.id !== id && e.field !== 'name';
+          return !(e.id === id && e.field === 'name');
         });
       });
     }

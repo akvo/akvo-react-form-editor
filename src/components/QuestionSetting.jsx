@@ -102,7 +102,7 @@ const QuestionSetting = ({ question, dependant }) => {
       // remove from error list
       ErrorStore.update((s) => {
         s.questionErrors = s.questionErrors.filter(
-          (e) => e.id !== id && e.field !== 'name'
+          (e) => !(e.id === id && e.field === 'name')
         );
       });
     }

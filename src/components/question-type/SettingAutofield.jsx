@@ -138,7 +138,7 @@ const SettingAutofield = ({
       ErrorStore.update((s) => {
         // remove from error list
         s.questionErrors = s.questionErrors.filter(
-          (e) => e.id !== id && e.field !== 'autofield_fnString'
+          (e) => !(e.id === id && e.field === 'autofield_fnString')
         );
       });
       setIsCorrect(true);

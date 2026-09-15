@@ -321,6 +321,36 @@ describe('data.toWebform (Phase 3)', () => {
     });
   });
 
+  describe('option questions without options', () => {
+    // An option question can reach save with no options at all — the host's
+    // JSON may omit them, and a type switch only seeds them once
+    // SettingOption mounts. Saving used to throw here, which killed the
+    // whole save with nothing shown to the user.
+    test('saves an option question that has no options', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'option',
+        label: 'L',
+        name: 'l',
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).option).toEqual([]);
+    });
+
+    test('saves a multiple_option question that has no options', () => {
+      const { formData, questionGroups } = editorWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'multiple_option',
+        label: 'L',
+        name: 'l',
+      });
+      const out = data.toWebform(formData, questionGroups);
+      expect(findQ(out).option).toEqual([]);
+    });
+  });
+
   describe('pre cleanup (prevents OptionField infinite render loop)', () => {
     test('strips empty pre object', () => {
       const { formData, questionGroups } = editorWithQuestion({

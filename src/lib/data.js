@@ -174,7 +174,10 @@ const toWebform = (formData, questionGroups) => {
       if (
         [questionType.option, questionType.multiple_option].includes(q.type)
       ) {
-        const options = q.options.map((op) => {
+        // A question can be option-typed without options: the incoming JSON
+        // may omit them, and switching a question's type only seeds them
+        // once SettingOption mounts. Saving must not throw over that.
+        const options = (q?.options || []).map((op) => {
           if (op?.translations) {
             return clearTranslations(op, op.translations);
           }
