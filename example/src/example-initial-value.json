@@ -956,6 +956,13 @@
             "lat": -6.2088,
             "lng": 106.8456
           },
+          "extra": {
+            "geoConfig": {
+              "accuracyThreshold": 25,
+              "detectOverlaps": true,
+              "overlapThreshold": 30
+            }
+          },
           "required": false
         },
         {

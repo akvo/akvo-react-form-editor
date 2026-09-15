@@ -11549,14 +11549,15 @@ var SettingGeo = function SettingGeo(_ref) {
     span: 8
   }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: UIText.inputGeoLatitudeLabel,
-    name: namePreffix + "-center_lat",
-    initialValue: lat
+    htmlFor: namePreffix + "-center_lat"
   }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+    id: namePreffix + "-center_lat",
     style: {
       width: '100%'
     },
     controls: false,
     keyboard: false,
+    value: lat,
     onChange: function onChange(v) {
       return updateCenter(0, v);
     }
@@ -11564,14 +11565,15 @@ var SettingGeo = function SettingGeo(_ref) {
     span: 8
   }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: UIText.inputGeoLongitudeLabel,
-    name: namePreffix + "-center_lng",
-    initialValue: lng
+    htmlFor: namePreffix + "-center_lng"
   }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+    id: namePreffix + "-center_lng",
     style: {
       width: '100%'
     },
     controls: false,
     keyboard: false,
+    value: lng,
     onChange: function onChange(v) {
       return updateCenter(1, v);
     }
@@ -11594,9 +11596,9 @@ var SettingGeo = function SettingGeo(_ref) {
       },
       size: 16
     }))),
-    name: namePreffix + "-geo_accuracy_threshold",
-    initialValue: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.accuracyThreshold
+    htmlFor: namePreffix + "-geo_accuracy_threshold"
   }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+    id: namePreffix + "-geo_accuracy_threshold",
     style: {
       width: '100%'
     },
@@ -11604,6 +11606,7 @@ var SettingGeo = function SettingGeo(_ref) {
     precision: 0,
     controls: false,
     keyboard: false,
+    value: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.accuracyThreshold,
     onChange: function onChange(v) {
       return updateGeoConfig('accuracyThreshold', v);
     }
@@ -11628,9 +11631,9 @@ var SettingGeo = function SettingGeo(_ref) {
     span: 8
   }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: UIText.inputGeoOverlapThresholdLabel,
-    name: namePreffix + "-geo_overlap_threshold",
-    initialValue: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.overlapThreshold
+    htmlFor: namePreffix + "-geo_overlap_threshold"
   }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+    id: namePreffix + "-geo_overlap_threshold",
     style: {
       width: '100%'
     },
@@ -11639,6 +11642,7 @@ var SettingGeo = function SettingGeo(_ref) {
     precision: 0,
     controls: false,
     keyboard: false,
+    value: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.overlapThreshold,
     onChange: function onChange(v) {
       return updateGeoConfig('overlapThreshold', v);
     }

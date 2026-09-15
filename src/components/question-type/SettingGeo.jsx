@@ -78,13 +78,14 @@ const SettingGeo = ({ id, questionGroupId, center, type, extra }) => {
         <Col span={8}>
           <Form.Item
             label={UIText.inputGeoLatitudeLabel}
-            name={`${namePreffix}-center_lat`}
-            initialValue={lat}
+            htmlFor={`${namePreffix}-center_lat`}
           >
             <InputNumber
+              id={`${namePreffix}-center_lat`}
               style={{ width: '100%' }}
               controls={false}
               keyboard={false}
+              value={lat}
               onChange={(v) => updateCenter(0, v)}
             />
           </Form.Item>
@@ -92,13 +93,14 @@ const SettingGeo = ({ id, questionGroupId, center, type, extra }) => {
         <Col span={8}>
           <Form.Item
             label={UIText.inputGeoLongitudeLabel}
-            name={`${namePreffix}-center_lng`}
-            initialValue={lng}
+            htmlFor={`${namePreffix}-center_lng`}
           >
             <InputNumber
+              id={`${namePreffix}-center_lng`}
               style={{ width: '100%' }}
               controls={false}
               keyboard={false}
+              value={lng}
               onChange={(v) => updateCenter(1, v)}
             />
           </Form.Item>
@@ -129,15 +131,16 @@ const SettingGeo = ({ id, questionGroupId, center, type, extra }) => {
                     </Tooltip>
                   </Space>
                 }
-                name={`${namePreffix}-geo_accuracy_threshold`}
-                initialValue={geoConfig?.accuracyThreshold}
+                htmlFor={`${namePreffix}-geo_accuracy_threshold`}
               >
                 <InputNumber
+                  id={`${namePreffix}-geo_accuracy_threshold`}
                   style={{ width: '100%' }}
                   min={1}
                   precision={0}
                   controls={false}
                   keyboard={false}
+                  value={geoConfig?.accuracyThreshold}
                   onChange={(v) => updateGeoConfig('accuracyThreshold', v)}
                 />
               </Form.Item>
@@ -168,16 +171,17 @@ const SettingGeo = ({ id, questionGroupId, center, type, extra }) => {
               <Col span={8}>
                 <Form.Item
                   label={UIText.inputGeoOverlapThresholdLabel}
-                  name={`${namePreffix}-geo_overlap_threshold`}
-                  initialValue={geoConfig?.overlapThreshold}
+                  htmlFor={`${namePreffix}-geo_overlap_threshold`}
                 >
                   <InputNumber
+                    id={`${namePreffix}-geo_overlap_threshold`}
                     style={{ width: '100%' }}
                     min={1}
                     max={100}
                     precision={0}
                     controls={false}
                     keyboard={false}
+                    value={geoConfig?.overlapThreshold}
                     onChange={(v) => updateGeoConfig('overlapThreshold', v)}
                   />
                 </Form.Item>

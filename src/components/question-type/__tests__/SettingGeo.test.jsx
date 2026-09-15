@@ -112,6 +112,48 @@ describe('SettingGeo geoConfig panel (GEO-009)', () => {
       });
       expect(screen.getByLabelText('Overlap threshold (%)')).toHaveValue('30');
     });
+
+    // The host's initialValue reaches the store after these inputs have
+    // already rendered, so they have to follow the store, not a one-shot
+    // Form.Item initialValue.
+    test('picks up geoConfig that arrives after the first render', () => {
+      const question = {
+        id: QUESTION_ID,
+        questionGroupId: GROUP_ID,
+        order: 1,
+        name: 'plot',
+        label: 'Plot',
+        type: 'geoshape',
+      };
+      seedStore(question);
+      const { rerender } = render(
+        <Form>
+          <SettingGeo {...question} />
+        </Form>
+      );
+      const loaded = {
+        ...question,
+        center: [-6.2088, 106.8456],
+        extra: {
+          geoConfig: {
+            accuracyThreshold: 25,
+            detectOverlaps: true,
+            overlapThreshold: 30,
+          },
+        },
+      };
+      seedStore(loaded);
+      rerender(
+        <Form>
+          <SettingGeo {...loaded} />
+        </Form>
+      );
+      expect(screen.getByLabelText('Latitude')).toHaveValue('-6.2088');
+      expect(screen.getByLabelText('GPS accuracy threshold (m)')).toHaveValue(
+        '25'
+      );
+      expect(screen.getByLabelText('Overlap threshold (%)')).toHaveValue('30');
+    });
   });
 
   describe('writes numbers under extra.geoConfig', () => {
