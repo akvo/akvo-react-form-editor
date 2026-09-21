@@ -12,6 +12,7 @@ import {
 import { AiOutlineQuestionCircle } from 'react-icons/ai';
 import styles from '../../styles.module.css';
 import { UIStore, questionGroupFn, questionType } from '../../lib/store';
+import SettingGeoRules from './SettingGeoRules';
 
 const { Text } = Typography;
 
@@ -26,7 +27,9 @@ const SettingGeo = ({ id, questionGroupId, center, type, extra }) => {
   // dispatch, which renders this component for all three geo types.
   const showGeoConfig = type === questionType.geoshape;
   const geoConfig = extra?.geoConfig;
-  const detectOverlaps = !!geoConfig?.detectOverlaps;
+  // Absent already means "tapping allowed", so the panel only ever writes
+  // `false` and removes the key otherwise — it never stores the default.
+  const requireGpsCapture = geoConfig?.allowTapping === false;
 
   const updateQuestion = (mapper) => {
     questionGroupFn.store.update((s) => {
@@ -146,48 +149,29 @@ const SettingGeo = ({ id, questionGroupId, center, type, extra }) => {
               </Form.Item>
             </Col>
           </Row>
-          <Form.Item
-            name={`${namePreffix}-geo_detect_overlaps`}
-            className={styles['input-checkbox-wrapper']}
-          >
+          <Form.Item className={styles['input-checkbox-wrapper']}>
             <Checkbox
+              id={`${namePreffix}-geo_allow_tapping`}
               onChange={(e) =>
-                updateGeoConfig('detectOverlaps', !!e?.target?.checked)
+                updateGeoConfig(
+                  'allowTapping',
+                  e?.target?.checked ? false : null
+                )
               }
-              checked={detectOverlaps}
+              checked={requireGpsCapture}
             >
               {' '}
-              {UIText.inputGeoDetectOverlapsCheckbox}
+              {UIText.inputGeoAllowTappingCheckbox}
             </Checkbox>
           </Form.Item>
           <div className={styles['field-error-wrapper']}>
-            <Text type="warning">{UIText.inputGeoDetectOverlapsHint}</Text>
+            <Text type="secondary">{UIText.inputGeoAllowTappingHint}</Text>
           </div>
-          {detectOverlaps && (
-            <Row
-              align="middle"
-              gutter={[24, 24]}
-            >
-              <Col span={8}>
-                <Form.Item
-                  label={UIText.inputGeoOverlapThresholdLabel}
-                  htmlFor={`${namePreffix}-geo_overlap_threshold`}
-                >
-                  <InputNumber
-                    id={`${namePreffix}-geo_overlap_threshold`}
-                    style={{ width: '100%' }}
-                    min={1}
-                    max={100}
-                    precision={0}
-                    controls={false}
-                    keyboard={false}
-                    value={geoConfig?.overlapThreshold}
-                    onChange={(v) => updateGeoConfig('overlapThreshold', v)}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-          )}
+          <SettingGeoRules
+            id={id}
+            geoConfig={geoConfig}
+            updateGeoConfig={updateGeoConfig}
+          />
         </div>
       )}
     </div>

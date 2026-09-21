@@ -139,12 +139,45 @@ const UIStaticText = {
     questionGeoConfigSettingText: 'Polygon capture and validation',
     inputGeoAccuracyThresholdLabel: 'GPS accuracy threshold (m)',
     inputGeoAccuracyThresholdTooltip:
-      'While auto-recording a boundary, GPS fixes less accurate than this are discarded instead of added to the shape.',
+      'Points recorded less accurately than this are marked on the map and block submission. Enumerators may tighten this limit on their own device, never loosen it.',
+    inputGeoAllowTappingCheckbox: 'Require GPS capture (disable tap-to-draw)',
+    inputGeoAllowTappingHint:
+      'Mobile app only. Enumerators must stand at each corner instead of tracing the shape on the map; the web form is unaffected.',
+    questionGeoRulesSettingText: 'Validation rules',
+    geoRuleColumnRule: 'Rule',
+    geoRuleColumnLimit: 'Limit',
+    geoRuleColumnSeverity: 'On failure',
+    geoRuleGroupShape: 'Shape',
+    geoRuleGroupArea: 'Area',
+    geoRuleGroupOverlap: 'Overlap',
+    geoRuleParseable: 'Is a polygon',
+    geoRuleMinVertices: 'Minimum points',
+    geoRuleSelfIntersection: 'No self-crossing',
+    geoRuleMinArea: 'Minimum area',
+    geoRuleMaxArea: 'Maximum area',
+    geoRuleOverlap: 'No overlap with other answers',
+    geoSeverityOff: 'Do not check',
+    geoSeverityDefault: 'Use device default',
+    geoSeverityBlock: 'Block submission',
+    geoSeverityWarn: 'Warn only',
+    geoRuleNoLimit: '—',
+    geoRuleMinVerticesLimit: '3',
+    geoRuleMinAreaLimit: '10 m²',
+    inputGeoMaxAreaLabel: 'Maximum area (ha)',
+    inputGeoMaxAreaTooltip:
+      'Hectares. Leave empty for no upper limit. Catches shapes drawn by tapping a zoomed-out map, which are slow to validate as well as wrong.',
     inputGeoDetectOverlapsCheckbox:
       'Detect overlaps with other answers to this question',
     inputGeoDetectOverlapsHint:
       'Enabling this syncs the geometry of every other response to this question onto the device.',
-    inputGeoOverlapThresholdLabel: 'Overlap threshold (%)',
+    inputGeoTappingBypassHint:
+      'Overlap detection alone does not stop an enumerator deleting a shape and redrawing it by tapping. A tapped shape records no accuracy, so no accuracy limit can reject it. Tick "Require GPS capture" above to close this.',
+    inputGeoOverlapThresholdLabel: 'Maximum overlap (%)',
+    inputGeoOverlapThresholdTooltip:
+      'The most overlap ever tolerated. The limit actually applied is derived from the GPS accuracy of both shapes and is never looser than this.',
+    inputGeoOverlapThresholdFloorLabel: 'Minimum overlap (%)',
+    inputGeoOverlapThresholdFloorTooltip:
+      'The least overlap that can ever be reported. Stops large, accurately measured shapes flagging on a sliver of GPS noise.',
     questionMoreAttachmentSettingText: 'More Attachment Question Setting',
     inputAllowedFileTypesLabel: 'Allowed File Types',
     inputAttachmentEndpointLabel: 'Attachment Endpoint',

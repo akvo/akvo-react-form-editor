@@ -958,9 +958,15 @@
           },
           "extra": {
             "geoConfig": {
-              "accuracyThreshold": 25,
+              "accuracyThreshold": 15,
+              "allowTapping": false,
+              "validateShape": true,
+              "validateArea": true,
+              "maxAreaHa": 20,
               "detectOverlaps": true,
-              "overlapThreshold": 30
+              "validateOverlap": true,
+              "overlapThreshold": 30,
+              "overlapThresholdFloor": 5
             }
           },
           "required": false
@@ -1031,6 +1037,31 @@
             }
           ],
           "dependency_rule": "AND"
+        },
+        {
+          "id": 38,
+          "label": "Grazing Area (lenient rules)",
+          "name": "grazing_area",
+          "order": 8,
+          "type": "geoshape",
+          "center": {
+            "lat": -6.2088,
+            "lng": 106.8456
+          },
+          "extra": {
+            "geoConfig": {
+              "accuracyThreshold": 50,
+              "validateShape": false,
+              "maxAreaHa": 500
+            }
+          },
+          "required": false,
+          "translations": [
+            {
+              "name": "Area Penggembalaan (aturan longgar)",
+              "language": "id"
+            }
+          ]
         }
       ]
     }
