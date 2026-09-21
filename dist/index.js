@@ -68,7 +68,7 @@ function _objectWithoutPropertiesLoose(source, excluded) {
   return target;
 }
 
-var styles = {"container":"arfe-container","form-definition":"arfe-form-definition","form-item-no-bottom-margin":"arfe-form-item-no-bottom-margin","input-checkbox-wrapper":"arfe-input-checkbox-wrapper","button-icon":"arfe-button-icon","reorder-wrapper":"arfe-reorder-wrapper","reorder-button":"arfe-reorder-button","select-dropdown":"arfe-select-dropdown","tabs-wrapper":"arfe-tabs-wrapper","tabs-wrapper-sticky":"arfe-tabs-wrapper-sticky","right-tabs":"arfe-right-tabs","tab-pane-name-icon":"arfe-tab-pane-name-icon","question-group-title":"arfe-question-group-title","space-align-right":"arfe-space-align-right","space-align-left":"arfe-space-align-left","space-vertical-align-left":"arfe-space-vertical-align-left","space-vertical-align-right":"arfe-space-vertical-align-right","more-question-setting-text":"arfe-more-question-setting-text","dependant-list-box":"arfe-dependant-list-box","tags":"arfe-tags","tags-active":"arfe-tags-active","translation-form-item":"arfe-translation-form-item","translation-form-item-card":"arfe-translation-form-item-card","field-error-wrapper":"arfe-field-error-wrapper"};
+var styles = {"container":"arfe-container","form-definition":"arfe-form-definition","form-item-no-bottom-margin":"arfe-form-item-no-bottom-margin","input-checkbox-wrapper":"arfe-input-checkbox-wrapper","button-icon":"arfe-button-icon","reorder-wrapper":"arfe-reorder-wrapper","reorder-button":"arfe-reorder-button","select-dropdown":"arfe-select-dropdown","tabs-wrapper":"arfe-tabs-wrapper","tabs-wrapper-sticky":"arfe-tabs-wrapper-sticky","right-tabs":"arfe-right-tabs","tab-pane-name-icon":"arfe-tab-pane-name-icon","question-group-title":"arfe-question-group-title","space-align-right":"arfe-space-align-right","space-align-left":"arfe-space-align-left","space-vertical-align-left":"arfe-space-vertical-align-left","space-vertical-align-right":"arfe-space-vertical-align-right","more-question-setting-text":"arfe-more-question-setting-text","dependant-list-box":"arfe-dependant-list-box","tags":"arfe-tags","tags-active":"arfe-tags-active","translation-form-item":"arfe-translation-form-item","translation-form-item-card":"arfe-translation-form-item-card","field-error-wrapper":"arfe-field-error-wrapper","geo-rule-table":"arfe-geo-rule-table","geo-rule-header":"arfe-geo-rule-header","geo-rule-group":"arfe-geo-rule-group","geo-rule-row":"arfe-geo-rule-row","geo-rule-name":"arfe-geo-rule-name","geo-rule-limit-stack":"arfe-geo-rule-limit-stack"};
 
 var FormWrapper = function FormWrapper(_ref) {
   var children = _ref.children;
@@ -227,10 +227,38 @@ var UIStaticText = {
     inputGeoLongitudeLabel: 'Longitude',
     questionGeoConfigSettingText: 'Polygon capture and validation',
     inputGeoAccuracyThresholdLabel: 'GPS accuracy threshold (m)',
-    inputGeoAccuracyThresholdTooltip: 'While auto-recording a boundary, GPS fixes less accurate than this are discarded instead of added to the shape.',
+    inputGeoAccuracyThresholdTooltip: 'Points recorded less accurately than this are marked on the map and block submission. Enumerators may tighten this limit on their own device, never loosen it.',
+    inputGeoAllowTappingCheckbox: 'Require GPS capture (disable tap-to-draw)',
+    inputGeoAllowTappingHint: 'Mobile app only. Enumerators must stand at each corner instead of tracing the shape on the map; the web form is unaffected.',
+    questionGeoRulesSettingText: 'Validation rules',
+    geoRuleColumnRule: 'Rule',
+    geoRuleColumnLimit: 'Limit',
+    geoRuleColumnSeverity: 'On failure',
+    geoRuleGroupShape: 'Shape',
+    geoRuleGroupArea: 'Area',
+    geoRuleGroupOverlap: 'Overlap',
+    geoRuleParseable: 'Is a polygon',
+    geoRuleMinVertices: 'Minimum points',
+    geoRuleSelfIntersection: 'No self-crossing',
+    geoRuleMinArea: 'Minimum area',
+    geoRuleMaxArea: 'Maximum area',
+    geoRuleOverlap: 'No overlap with other answers',
+    geoSeverityOff: 'Do not check',
+    geoSeverityDefault: 'Use device default',
+    geoSeverityBlock: 'Block submission',
+    geoSeverityWarn: 'Warn only',
+    geoRuleNoLimit: '—',
+    geoRuleMinVerticesLimit: '3',
+    geoRuleMinAreaLimit: '10 m²',
+    inputGeoMaxAreaLabel: 'Maximum area (ha)',
+    inputGeoMaxAreaTooltip: 'Hectares. Leave empty for no upper limit. Catches shapes drawn by tapping a zoomed-out map, which are slow to validate as well as wrong.',
     inputGeoDetectOverlapsCheckbox: 'Detect overlaps with other answers to this question',
     inputGeoDetectOverlapsHint: 'Enabling this syncs the geometry of every other response to this question onto the device.',
-    inputGeoOverlapThresholdLabel: 'Overlap threshold (%)',
+    inputGeoTappingBypassHint: 'Overlap detection alone does not stop an enumerator deleting a shape and redrawing it by tapping. A tapped shape records no accuracy, so no accuracy limit can reject it. Tick "Require GPS capture" above to close this.',
+    inputGeoOverlapThresholdLabel: 'Maximum overlap (%)',
+    inputGeoOverlapThresholdTooltip: 'The most overlap ever tolerated. The limit actually applied is derived from the GPS accuracy of both shapes and is never looser than this.',
+    inputGeoOverlapThresholdFloorLabel: 'Minimum overlap (%)',
+    inputGeoOverlapThresholdFloorTooltip: 'The least overlap that can ever be reported. Stops large, accurately measured shapes flagging on a sliver of GPS noise.',
     questionMoreAttachmentSettingText: 'More Attachment Question Setting',
     inputAllowedFileTypesLabel: 'Allowed File Types',
     inputAttachmentEndpointLabel: 'Attachment Endpoint',
@@ -11477,7 +11505,265 @@ var SettingAutofield = function SettingAutofield(_ref) {
   }));
 };
 
+var polygonRuleGroups = [{
+  key: 'shape',
+  labelKey: 'geoRuleGroupShape',
+  configKey: 'validateShape',
+  rules: [{
+    key: 'parseable',
+    labelKey: 'geoRuleParseable'
+  }, {
+    key: 'minVertices',
+    labelKey: 'geoRuleMinVertices',
+    limitKey: 'geoRuleMinVerticesLimit'
+  }, {
+    key: 'selfIntersection',
+    labelKey: 'geoRuleSelfIntersection'
+  }]
+}, {
+  key: 'area',
+  labelKey: 'geoRuleGroupArea',
+  configKey: 'validateArea',
+  rules: [{
+    key: 'minArea',
+    labelKey: 'geoRuleMinArea',
+    limitKey: 'geoRuleMinAreaLimit'
+  }, {
+    key: 'maxArea',
+    labelKey: 'geoRuleMaxArea'
+  }]
+}, {
+  key: 'overlap',
+  labelKey: 'geoRuleGroupOverlap',
+  configKey: 'validateOverlap',
+  enableKey: 'detectOverlaps',
+  rules: [{
+    key: 'overlap',
+    labelKey: 'geoRuleOverlap'
+  }]
+}];
+var severityValues = {
+  off: 'off',
+  "default": 'default',
+  block: 'block',
+  warn: 'warn'
+};
+
+var toSeverity = function toSeverity(value) {
+  if (typeof value !== 'boolean') {
+    return severityValues["default"];
+  }
+
+  return value ? severityValues.block : severityValues.warn;
+};
+
+var fromSeverity = function fromSeverity(value) {
+  return value === severityValues["default"] ? null : value === severityValues.block;
+};
+
+var toGroupValue = function toGroupValue(geoConfig, group) {
+  if (group.enableKey && !(geoConfig !== null && geoConfig !== void 0 && geoConfig[group.enableKey])) {
+    return severityValues.off;
+  }
+
+  return toSeverity(geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig[group.configKey]);
+};
+
+var fromGroupValue = function fromGroupValue(value, group) {
+  if (!group.enableKey) {
+    return [[group.configKey, fromSeverity(value)]];
+  }
+
+  if (value === severityValues.off) {
+    return [[group.enableKey, false], [group.configKey, null]];
+  }
+
+  return [[group.enableKey, true], [group.configKey, fromSeverity(value)]];
+};
+
 var Text$4 = antd.Typography.Text;
+var DEFAULT_OVERLAP_THRESHOLD = 20;
+var DEFAULT_OVERLAP_FLOOR = 5;
+var MIN_MAX_AREA_HA = 0.001;
+
+var LabelWithTooltip = function LabelWithTooltip(_ref) {
+  var label = _ref.label,
+      tooltip = _ref.tooltip;
+  return /*#__PURE__*/React__default.createElement(antd.Space, {
+    align: "center"
+  }, /*#__PURE__*/React__default.createElement("div", null, label), /*#__PURE__*/React__default.createElement(antd.Tooltip, {
+    title: tooltip,
+    placement: "right"
+  }, /*#__PURE__*/React__default.createElement(ai.AiOutlineQuestionCircle, {
+    style: {
+      marginBottom: '-2px'
+    },
+    size: 16
+  })));
+};
+
+var SettingGeoRules = function SettingGeoRules(_ref2) {
+  var id = _ref2.id,
+      geoConfig = _ref2.geoConfig,
+      updateGeoConfig = _ref2.updateGeoConfig;
+  var namePreffix = "question-" + id;
+  var UIText = UIStore.useState(function (s) {
+    return s.UIText;
+  });
+  var detectOverlaps = !!(geoConfig !== null && geoConfig !== void 0 && geoConfig.detectOverlaps);
+
+  var severityOptions = function severityOptions(group) {
+    var graded = [{
+      label: UIText.geoSeverityDefault,
+      value: severityValues["default"]
+    }, {
+      label: UIText.geoSeverityBlock,
+      value: severityValues.block
+    }, {
+      label: UIText.geoSeverityWarn,
+      value: severityValues.warn
+    }];
+    return group.enableKey ? [{
+      label: UIText.geoSeverityOff,
+      value: severityValues.off
+    }].concat(graded) : graded;
+  };
+
+  var renderLimit = function renderLimit(rule) {
+    if (rule.key === 'maxArea') {
+      return /*#__PURE__*/React__default.createElement(antd.Space, {
+        align: "center"
+      }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+        id: namePreffix + "-geo_max_area_ha",
+        "aria-label": UIText.inputGeoMaxAreaLabel,
+        min: MIN_MAX_AREA_HA,
+        controls: false,
+        keyboard: false,
+        value: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.maxAreaHa,
+        onChange: function onChange(v) {
+          return updateGeoConfig('maxAreaHa', v);
+        }
+      }), /*#__PURE__*/React__default.createElement(antd.Tooltip, {
+        title: UIText.inputGeoMaxAreaTooltip,
+        placement: "right"
+      }, /*#__PURE__*/React__default.createElement("span", null, "ha")));
+    }
+
+    if (rule.key === 'overlap') {
+      var _geoConfig$overlapThr, _geoConfig$overlapThr2;
+
+      if (!detectOverlaps) {
+        return /*#__PURE__*/React__default.createElement("span", null, UIText.geoRuleNoLimit);
+      }
+
+      return /*#__PURE__*/React__default.createElement("div", {
+        className: styles['geo-rule-limit-stack']
+      }, /*#__PURE__*/React__default.createElement("div", {
+        className: styles['field-error-wrapper']
+      }, /*#__PURE__*/React__default.createElement(Text$4, {
+        type: "warning"
+      }, UIText.inputGeoDetectOverlapsHint)), /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement(LabelWithTooltip, {
+        label: UIText.inputGeoOverlapThresholdLabel,
+        tooltip: UIText.inputGeoOverlapThresholdTooltip
+      }), /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+        id: namePreffix + "-geo_overlap_threshold",
+        "aria-label": UIText.inputGeoOverlapThresholdLabel,
+        min: (_geoConfig$overlapThr = geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.overlapThresholdFloor) != null ? _geoConfig$overlapThr : DEFAULT_OVERLAP_FLOOR,
+        max: 100,
+        precision: 0,
+        controls: false,
+        keyboard: false,
+        value: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.overlapThreshold,
+        onChange: function onChange(v) {
+          return updateGeoConfig('overlapThreshold', v);
+        }
+      })), /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement(LabelWithTooltip, {
+        label: UIText.inputGeoOverlapThresholdFloorLabel,
+        tooltip: UIText.inputGeoOverlapThresholdFloorTooltip
+      }), /*#__PURE__*/React__default.createElement(antd.InputNumber, {
+        id: namePreffix + "-geo_overlap_threshold_floor",
+        "aria-label": UIText.inputGeoOverlapThresholdFloorLabel,
+        min: 1,
+        max: (_geoConfig$overlapThr2 = geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.overlapThreshold) != null ? _geoConfig$overlapThr2 : DEFAULT_OVERLAP_THRESHOLD,
+        precision: 0,
+        controls: false,
+        keyboard: false,
+        value: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.overlapThresholdFloor,
+        onChange: function onChange(v) {
+          return updateGeoConfig('overlapThresholdFloor', v);
+        }
+      })));
+    }
+
+    return /*#__PURE__*/React__default.createElement("span", null, UIText[rule.limitKey] || UIText.geoRuleNoLimit);
+  };
+
+  var renderGroupSeverity = function renderGroupSeverity(group) {
+    return /*#__PURE__*/React__default.createElement(antd.Select, {
+      id: namePreffix + "-geo_" + group.configKey,
+      "aria-label": UIText[group.labelKey],
+      className: styles['select-dropdown'],
+      options: severityOptions(group),
+      getPopupContainer: function getPopupContainer(triggerNode) {
+        return triggerNode.parentElement;
+      },
+      value: toGroupValue(geoConfig, group),
+      onChange: function onChange(v) {
+        return fromGroupValue(v, group).forEach(function (_ref3) {
+          var key = _ref3[0],
+              value = _ref3[1];
+          return updateGeoConfig(key, value);
+        });
+      }
+    });
+  };
+
+  return /*#__PURE__*/React__default.createElement("div", null, /*#__PURE__*/React__default.createElement("p", {
+    className: styles['more-question-setting-text']
+  }, UIText.questionGeoRulesSettingText), /*#__PURE__*/React__default.createElement("div", {
+    className: styles['geo-rule-table']
+  }, /*#__PURE__*/React__default.createElement(antd.Row, {
+    className: styles['geo-rule-header']
+  }, /*#__PURE__*/React__default.createElement(antd.Col, {
+    span: 7
+  }, UIText.geoRuleColumnRule), /*#__PURE__*/React__default.createElement(antd.Col, {
+    span: 11
+  }, UIText.geoRuleColumnLimit), /*#__PURE__*/React__default.createElement(antd.Col, {
+    span: 6
+  }, UIText.geoRuleColumnSeverity)), polygonRuleGroups.map(function (group) {
+    return /*#__PURE__*/React__default.createElement("div", {
+      key: group.key
+    }, /*#__PURE__*/React__default.createElement(antd.Row, {
+      align: "middle",
+      className: styles['geo-rule-group']
+    }, /*#__PURE__*/React__default.createElement(antd.Col, {
+      span: 7
+    }, UIText[group.labelKey]), /*#__PURE__*/React__default.createElement(antd.Col, {
+      span: 11
+    }), /*#__PURE__*/React__default.createElement(antd.Col, {
+      span: 6
+    }, renderGroupSeverity(group))), group.rules.map(function (rule) {
+      return /*#__PURE__*/React__default.createElement(antd.Row, {
+        key: rule.key,
+        align: "middle",
+        className: styles['geo-rule-row']
+      }, /*#__PURE__*/React__default.createElement(antd.Col, {
+        span: 7,
+        className: styles['geo-rule-name']
+      }, UIText[rule.labelKey]), /*#__PURE__*/React__default.createElement(antd.Col, {
+        span: 11
+      }, renderLimit(rule)), /*#__PURE__*/React__default.createElement(antd.Col, {
+        span: 6
+      }));
+    }));
+  })), detectOverlaps && (geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.allowTapping) !== false && /*#__PURE__*/React__default.createElement("div", {
+    className: styles['field-error-wrapper']
+  }, /*#__PURE__*/React__default.createElement(Text$4, {
+    type: "warning"
+  }, UIText.inputGeoTappingBypassHint)));
+};
+
+var Text$5 = antd.Typography.Text;
 
 var SettingGeo = function SettingGeo(_ref) {
   var id = _ref.id,
@@ -11493,7 +11779,7 @@ var SettingGeo = function SettingGeo(_ref) {
   var lng = Array.isArray(center) ? center[1] : null;
   var showGeoConfig = type === questionType.geoshape;
   var geoConfig = extra === null || extra === void 0 ? void 0 : extra.geoConfig;
-  var detectOverlaps = !!(geoConfig !== null && geoConfig !== void 0 && geoConfig.detectOverlaps);
+  var requireGpsCapture = (geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.allowTapping) === false;
 
   var updateQuestion = function updateQuestion(mapper) {
     questionGroupFn.store.update(function (s) {
@@ -11613,42 +11899,24 @@ var SettingGeo = function SettingGeo(_ref) {
       return updateGeoConfig('accuracyThreshold', v);
     }
   })))), /*#__PURE__*/React__default.createElement(antd.Form.Item, {
-    name: namePreffix + "-geo_detect_overlaps",
     className: styles['input-checkbox-wrapper']
   }, /*#__PURE__*/React__default.createElement(antd.Checkbox, {
+    id: namePreffix + "-geo_allow_tapping",
     onChange: function onChange(e) {
       var _e$target;
 
-      return updateGeoConfig('detectOverlaps', !!(e !== null && e !== void 0 && (_e$target = e.target) !== null && _e$target !== void 0 && _e$target.checked));
+      return updateGeoConfig('allowTapping', e !== null && e !== void 0 && (_e$target = e.target) !== null && _e$target !== void 0 && _e$target.checked ? false : null);
     },
-    checked: detectOverlaps
-  }, ' ', UIText.inputGeoDetectOverlapsCheckbox)), /*#__PURE__*/React__default.createElement("div", {
+    checked: requireGpsCapture
+  }, ' ', UIText.inputGeoAllowTappingCheckbox)), /*#__PURE__*/React__default.createElement("div", {
     className: styles['field-error-wrapper']
-  }, /*#__PURE__*/React__default.createElement(Text$4, {
-    type: "warning"
-  }, UIText.inputGeoDetectOverlapsHint)), detectOverlaps && /*#__PURE__*/React__default.createElement(antd.Row, {
-    align: "middle",
-    gutter: [24, 24]
-  }, /*#__PURE__*/React__default.createElement(antd.Col, {
-    span: 8
-  }, /*#__PURE__*/React__default.createElement(antd.Form.Item, {
-    label: UIText.inputGeoOverlapThresholdLabel,
-    htmlFor: namePreffix + "-geo_overlap_threshold"
-  }, /*#__PURE__*/React__default.createElement(antd.InputNumber, {
-    id: namePreffix + "-geo_overlap_threshold",
-    style: {
-      width: '100%'
-    },
-    min: 1,
-    max: 100,
-    precision: 0,
-    controls: false,
-    keyboard: false,
-    value: geoConfig === null || geoConfig === void 0 ? void 0 : geoConfig.overlapThreshold,
-    onChange: function onChange(v) {
-      return updateGeoConfig('overlapThreshold', v);
-    }
-  }))))));
+  }, /*#__PURE__*/React__default.createElement(Text$5, {
+    type: "secondary"
+  }, UIText.inputGeoAllowTappingHint)), /*#__PURE__*/React__default.createElement(SettingGeoRules, {
+    id: id,
+    geoConfig: geoConfig,
+    updateGeoConfig: updateGeoConfig
+  })));
 };
 
 var allowedFileTypeOptions = [{
@@ -12028,7 +12296,7 @@ var QuestionStats = function QuestionStats(_ref) {
 };
 
 var questionTypeWithRule = ['number', 'date'];
-var Text$5 = antd.Typography.Text;
+var Text$6 = antd.Typography.Text;
 
 var QuestionSetting = function QuestionSetting(_ref) {
   var question = _ref.question,
@@ -12372,7 +12640,7 @@ var QuestionSetting = function QuestionSetting(_ref) {
     value: nameFieldValue
   })), currentQuestionNameError !== null && currentQuestionNameError !== void 0 && currentQuestionNameError.id ? /*#__PURE__*/React__default.createElement("div", {
     className: styles['field-error-wrapper']
-  }, /*#__PURE__*/React__default.createElement(Text$5, {
+  }, /*#__PURE__*/React__default.createElement(Text$6, {
     type: "danger"
   }, currentQuestionNameError.message)) : '', /*#__PURE__*/React__default.createElement(antd.Form.Item, {
     label: /*#__PURE__*/React__default.createElement(antd.Space, {

@@ -146,3 +146,36 @@
   margin-top: -18px;
   margin-bottom: 24px;
 }
+
+.arfe-geo-rule-table {
+  margin-bottom: 12px;
+  border: 1px solid #f0f0f0;
+}
+
+.arfe-geo-rule-header {
+  font-weight: 600;
+  background-color: #fafafa;
+}
+
+.arfe-geo-rule-header,
+.arfe-geo-rule-group,
+.arfe-geo-rule-row {
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.arfe-geo-rule-group {
+  border-top: 1px solid #f0f0f0;
+  font-weight: 600;
+}
+
+/* Rules are indented under the severity control that governs them, so the
+   blast radius of changing that control is visible rather than implied. */
+.arfe-geo-rule-name {
+  padding-left: 16px;
+  color: #595959;
+}
+
+.arfe-geo-rule-limit-stack > * + * {
+  margin-top: 8px;
+}
