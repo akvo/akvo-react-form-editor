@@ -1,4 +1,4 @@
-import { questionType } from '../store';
+import { questionType, questionFn, questionGroupFn } from '../store';
 
 describe('store.questionType', () => {
   describe('existing types still registered', () => {
@@ -60,6 +60,30 @@ describe('store.questionType', () => {
     test('entity NOT registered as a separate type', () => {
       // entity is cascade + extra.type:"entity" — not its own question type
       expect(questionType.entity).toBeUndefined();
+    });
+  });
+
+  describe('default question required behavior', () => {
+    test('questionFn.add creates question with required: true by default', () => {
+      const q = questionFn.add({ questionGroup: { id: 101 } });
+      expect(q.required).toBe(true);
+    });
+
+    test('questionFn.add respects explicit required: false', () => {
+      const q = questionFn.add({ questionGroup: { id: 101 }, required: false });
+      expect(q.required).toBe(false);
+    });
+
+    test('questionGroupFn.add creates group with child question having required: true by default', () => {
+      const group = questionGroupFn.add({});
+      expect(group.questions[0].required).toBe(true);
+    });
+
+    test('questionGroupFn.add respects defaultQuestionParam with required: false', () => {
+      const group = questionGroupFn.add({
+        defaultQuestionParam: { required: false },
+      });
+      expect(group.questions[0].required).toBe(false);
     });
   });
 });
