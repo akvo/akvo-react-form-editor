@@ -10,7 +10,7 @@ import { RiDeleteBin2Line, RiSave3Fill, RiSettings5Fill, RiSettings5Line } from 
 import { BiMove, BiCopy } from 'react-icons/bi';
 import { MdOutlineAddCircleOutline, MdOutlineRemoveCircleOutline, MdOutlineArrowCircleUp, MdOutlineArrowCircleDown, MdOutlineLanguage } from 'react-icons/md';
 import { AiOutlineEyeInvisible, AiOutlineEye, AiOutlineQuestionCircle, AiOutlineCopy } from 'react-icons/ai';
-import { isEmpty, mapKeys, orderBy, findIndex, intersection, uniq, difference, takeRight, snakeCase as snakeCase$2, map, groupBy, maxBy, minBy } from 'lodash';
+import { isEmpty, mapKeys, orderBy, findIndex, intersection, uniq, difference, takeRight, snakeCase as snakeCase$2, map, groupBy, maxBy, minBy, isNil } from 'lodash';
 import orderBy$1 from 'lodash/orderBy';
 import 'akvo-react-form/dist/index.css';
 import { Webform } from 'akvo-react-form';
@@ -416,7 +416,7 @@ var defaultQuestion = function defaultQuestion(_ref) {
       _ref$type = _ref.type,
       type = _ref$type === void 0 ? questionType.input : _ref$type,
       _ref$required = _ref.required,
-      required = _ref$required === void 0 ? false : _ref$required,
+      required = _ref$required === void 0 ? true : _ref$required,
       _ref$params = _ref.params,
       params = _ref$params === void 0 ? {} : _ref$params;
   var labelTemp = label ? label : dummyName(5);
@@ -14285,9 +14285,9 @@ var WebformEditor = function WebformEditor(_ref) {
   useEffect(function () {
     var _settingHintURL$setti, _settingHintURL$setti2, _customParams$params;
 
-    var checkDefaultQuestion = defaultQuestion ? Object.values(defaultQuestion).filter(function (x) {
-      return x;
-    }).length : false;
+    var checkDefaultQuestion = defaultQuestion ? Object.values(defaultQuestion).some(function (x) {
+      return !isNil(x);
+    }) : false;
     var sanitizeSettingTreeDropdownValue = settingTreeDropdownValue.filter(function (x) {
       return (x === null || x === void 0 ? void 0 : x.label) && (x === null || x === void 0 ? void 0 : x.value);
     });
@@ -14312,7 +14312,7 @@ var WebformEditor = function WebformEditor(_ref) {
     var sanitizeDefaultQuestion = {
       type: (defaultQuestion === null || defaultQuestion === void 0 ? void 0 : defaultQuestion.type) || questionType.input,
       name: defaultQuestion === null || defaultQuestion === void 0 ? void 0 : defaultQuestion.name,
-      required: (defaultQuestion === null || defaultQuestion === void 0 ? void 0 : defaultQuestion.required) || false
+      required: !isNil(defaultQuestion === null || defaultQuestion === void 0 ? void 0 : defaultQuestion.required) ? defaultQuestion.required : true
     };
     var sanitizeCustomParams = customParams === null || customParams === void 0 ? void 0 : (_customParams$params = customParams.params) === null || _customParams$params === void 0 ? void 0 : _customParams$params.filter(function (x) {
       return x === null || x === void 0 ? void 0 : x.name;
