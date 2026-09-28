@@ -711,5 +711,37 @@ describe('data.toWebform (Phase 3)', () => {
       const out = data.toWebform(formData, questionGroups);
       expect(findQ(out).is_repeat_identifier).toBe(true);
     });
+
+    test('required: false is preserved in toEditor and toWebform', () => {
+      const webform = wfWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'input',
+        label: 'L',
+        name: 'l',
+        required: false,
+      });
+      const editor = data.toEditor(webform);
+      expect(editor.questionGroups[0].questions[0].required).toBe(false);
+
+      const out = data.toWebform(editor, editor.questionGroups);
+      expect(findQ(out).required).toBe(false);
+    });
+
+    test('required: true is preserved in toEditor and toWebform', () => {
+      const webform = wfWithQuestion({
+        id: 100,
+        order: 1,
+        type: 'input',
+        label: 'L',
+        name: 'l',
+        required: true,
+      });
+      const editor = data.toEditor(webform);
+      expect(editor.questionGroups[0].questions[0].required).toBe(true);
+
+      const out = data.toWebform(editor, editor.questionGroups);
+      expect(findQ(out).required).toBe(true);
+    });
   });
 });
