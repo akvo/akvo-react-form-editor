@@ -9,3 +9,7 @@ ARFE - Updates.md
 # Claude Code internal files
 .claude/
 .mcp.json
+
+.agent/
+agent_docs/
+task.md
