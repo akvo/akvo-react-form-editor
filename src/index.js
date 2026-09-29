@@ -19,7 +19,7 @@ import {
   ErrorStore,
 } from './lib/store';
 import data from './lib/data';
-import { isEmpty } from 'lodash';
+import { isEmpty, isNil } from 'lodash';
 import { TbEdit } from 'react-icons/tb';
 import { MdOutlineLanguage } from 'react-icons/md';
 import { VscPreview } from 'react-icons/vsc';
@@ -92,7 +92,7 @@ const WebformEditor = ({
   useEffect(() => {
     // store params from host to global store
     const checkDefaultQuestion = defaultQuestion
-      ? Object.values(defaultQuestion).filter((x) => x).length
+      ? Object.values(defaultQuestion).some((x) => !isNil(x))
       : false;
     const sanitizeSettingTreeDropdownValue = settingTreeDropdownValue.filter(
       (x) => x?.label && x?.value
@@ -111,7 +111,9 @@ const WebformEditor = ({
     const sanitizeDefaultQuestion = {
       type: defaultQuestion?.type || questionType.input,
       name: defaultQuestion?.name,
-      required: defaultQuestion?.required || false,
+      required: !isNil(defaultQuestion?.required)
+        ? defaultQuestion.required
+        : true,
     };
     const sanitizeCustomParams = customParams?.params?.filter((x) => x?.name);
     // update UIStore

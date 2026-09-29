@@ -419,7 +419,7 @@ var defaultQuestion = function defaultQuestion(_ref) {
       _ref$type = _ref.type,
       type = _ref$type === void 0 ? questionType.input : _ref$type,
       _ref$required = _ref.required,
-      required = _ref$required === void 0 ? false : _ref$required,
+      required = _ref$required === void 0 ? true : _ref$required,
       _ref$params = _ref.params,
       params = _ref$params === void 0 ? {} : _ref$params;
   var labelTemp = label ? label : dummyName(5);
@@ -14288,9 +14288,9 @@ var WebformEditor = function WebformEditor(_ref) {
   React.useEffect(function () {
     var _settingHintURL$setti, _settingHintURL$setti2, _customParams$params;
 
-    var checkDefaultQuestion = defaultQuestion ? Object.values(defaultQuestion).filter(function (x) {
-      return x;
-    }).length : false;
+    var checkDefaultQuestion = defaultQuestion ? Object.values(defaultQuestion).some(function (x) {
+      return !lodash.isNil(x);
+    }) : false;
     var sanitizeSettingTreeDropdownValue = settingTreeDropdownValue.filter(function (x) {
       return (x === null || x === void 0 ? void 0 : x.label) && (x === null || x === void 0 ? void 0 : x.value);
     });
@@ -14315,7 +14315,7 @@ var WebformEditor = function WebformEditor(_ref) {
     var sanitizeDefaultQuestion = {
       type: (defaultQuestion === null || defaultQuestion === void 0 ? void 0 : defaultQuestion.type) || questionType.input,
       name: defaultQuestion === null || defaultQuestion === void 0 ? void 0 : defaultQuestion.name,
-      required: (defaultQuestion === null || defaultQuestion === void 0 ? void 0 : defaultQuestion.required) || false
+      required: !lodash.isNil(defaultQuestion === null || defaultQuestion === void 0 ? void 0 : defaultQuestion.required) ? defaultQuestion.required : true
     };
     var sanitizeCustomParams = customParams === null || customParams === void 0 ? void 0 : (_customParams$params = customParams.params) === null || _customParams$params === void 0 ? void 0 : _customParams$params.filter(function (x) {
       return x === null || x === void 0 ? void 0 : x.name;

@@ -49,7 +49,7 @@ const defaultQuestion = ({
   name,
   prevOrder = 0,
   type = questionType.input,
-  required = false,
+  required = true,
   params = {},
 }) => {
   const labelTemp = label ? label : dummyName(5);
