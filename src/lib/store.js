@@ -131,6 +131,14 @@ const UIStore = new Store({
   activeEditTranslationQuestionGroups: [],
   activeEditTranslationQuestions: [],
   hostParams: {},
+  saveStatus: 0,
+  lastSaved: null,
+  autoSaveConfig: {
+    enabled: true,
+    interval: 30000,
+    storageKeyPrefix: 'arfe_',
+    enableDraftRecovery: true,
+  },
 });
 
 const ErrorStore = new Store({
