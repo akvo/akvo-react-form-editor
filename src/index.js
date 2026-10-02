@@ -11,7 +11,12 @@ import {
 } from './components';
 import { ButtonWithIcon, SaveStatusIndicator } from './support';
 import useAutoSave from './hooks/useAutoSave';
-import { STATUS_SAVED } from './lib/storage';
+import {
+  STATUS_SAVED,
+  STATUS_DIRTY,
+  getDraft,
+  getDirtyStatus,
+} from './lib/storage';
 import {
   UIStore,
   formFn,
@@ -31,6 +36,7 @@ const WebformEditor = ({
   onAutoSave = null,
   enableAutoSave = true,
   autoSaveInterval = 30000,
+  enableDraftRecovery = true,
   storageKeyPrefix = 'arfe_',
   initialValue = null,
   settingTreeDropdownValue = [{ label: null, value: null }],
@@ -201,8 +207,48 @@ const WebformEditor = ({
   }, [defaultQuestionParam, init]);
 
   useEffect(() => {
+    let initialData = null;
+    let formId = null;
+
     if (!isEmpty(initialValue)) {
-      const initialData = data.toEditor(initialValue);
+      initialData = data.toEditor(initialValue);
+      formId = initialData?.id;
+    }
+
+    const cachedDraft = enableDraftRecovery
+      ? getDraft(formId, { prefix: storageKeyPrefix })
+      : null;
+    const dirtyStatus = enableDraftRecovery
+      ? getDirtyStatus(formId, { prefix: storageKeyPrefix })
+      : null;
+    const hasUnsavedDraft =
+      cachedDraft &&
+      dirtyStatus?.status === STATUS_DIRTY &&
+      cachedDraft.form &&
+      cachedDraft.questionGroups;
+
+    if (hasUnsavedDraft) {
+      const recoveredForm = cachedDraft.form;
+      formFn.store.update((s) => {
+        s.id = recoveredForm?.id || formId || generateId();
+        s.version = recoveredForm?.version || 1;
+        s.name = recoveredForm?.name || 'Unknown Form';
+        s.description = recoveredForm?.description || 'Unknown Description';
+        s.languages = recoveredForm?.languages?.filter((x) => x !== 'en') || [];
+        s.defaultLanguage = recoveredForm?.defaultLanguage || 'en';
+        s.translations = recoveredForm?.translations || [];
+      });
+      questionGroupFn.store.update((s) => {
+        s.questionGroups = cachedDraft.questionGroups;
+      });
+      UIStore.update((s) => {
+        s.saveStatus = STATUS_DIRTY;
+      });
+      notification.info({
+        message:
+          UIText?.autoSaveDraftRecovered || 'Draft restored from local cache',
+      });
+    } else if (!isEmpty(initialValue)) {
       formFn.store.update((s) => {
         s.id = initialData?.id || generateId();
         s.version = initialData?.version || 1;
@@ -214,6 +260,9 @@ const WebformEditor = ({
       });
       questionGroupFn.store.update((s) => {
         s.questionGroups = initialData.questionGroups;
+      });
+      UIStore.update((s) => {
+        s.saveStatus = STATUS_SAVED;
       });
     } else {
       const defaultForm = formFn.add();
@@ -229,11 +278,16 @@ const WebformEditor = ({
       questionGroupFn.store.update((s) => {
         s.questionGroups = [questionGroupFn.add({})];
       });
+      UIStore.update((s) => {
+        s.saveStatus = STATUS_SAVED;
+      });
     }
-    UIStore.update((s) => {
-      s.saveStatus = STATUS_SAVED;
-    });
-  }, [initialValue]);
+  }, [
+    initialValue,
+    enableDraftRecovery,
+    storageKeyPrefix,
+    UIText?.autoSaveDraftRecovered,
+  ]);
 
   const { triggerSync } = useAutoSave({
     formId: formStore.id,

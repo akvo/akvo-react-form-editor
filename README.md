@@ -56,15 +56,20 @@ const Example = () => {
 
 ### WebformEditor
 
-| Props                 | Description                                                               | Type                                                                 | Default |
-| --------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------- |
-| **onSave**            | Trigger after save button click                                           | `function(values)`                                                   | -       |
-| **limitQuestionType** | Support to limit question type available                                  | Array[[QuestionType](#supported-question-type)] \| `undefined`       | -       |
-| **defaultQuestion**   | Support to set custom default new question type, name and required status | Object{[defaultQuestion](#default-question-optional)} \| `undefined` | -       |
-| **initialValue**      | Set value by Form initialization (**Required** as empty object)           | Object{[initialValue](#initial-value-optional)} \| `{}`              | -       |
-| **settingCascadeURL** | Value for Select Option on cascade question type                          | Array[[settingCascadeURL](#setting-cascade-url)] \| `undefined`      | -       |
-| **settingHintURL**    | Value for Hint / Validate question setting                                | Object{[settingHintURL](#setting-hint-url)} \| `undefined`           | -       |
-| **customParams**      | Custom Parameters                                                         | Object{[customParams](#custom-params)} \| `undefined`                |
+| Props                   | Description                                                               | Type                                                                 | Default   |
+| ----------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------- | --------- |
+| **onSave**              | Trigger after save button click                                           | `function(values)`                                                   | -         |
+| **onAutoSave**          | Async handler triggered on periodic auto-save and tab switches            | `function(values): Promise<void> \| void`                            | `null`    |
+| **enableAutoSave**      | Enable auto-save to storage cache and host sync                           | Boolean                                                              | `true`    |
+| **autoSaveInterval**    | Auto-save sync interval in milliseconds                                   | Number                                                               | `30000`   |
+| **enableDraftRecovery** | Automatically recover unsaved drafts from local storage on reload         | Boolean                                                              | `true`    |
+| **storageKeyPrefix**    | Prefix for local storage cache keys                                       | String                                                               | `'arfe_'` |
+| **limitQuestionType**   | Support to limit question type available                                  | Array[[QuestionType](#supported-question-type)] \| `undefined`       | -         |
+| **defaultQuestion**     | Support to set custom default new question type, name and required status | Object{[defaultQuestion](#default-question-optional)} \| `undefined` | -         |
+| **initialValue**        | Set value by Form initialization (**Required** as empty object)           | Object{[initialValue](#initial-value-optional)} \| `{}`              | -         |
+| **settingCascadeURL**   | Value for Select Option on cascade question type                          | Array[[settingCascadeURL](#setting-cascade-url)] \| `undefined`      | -         |
+| **settingHintURL**      | Value for Hint / Validate question setting                                | Object{[settingHintURL](#setting-hint-url)} \| `undefined`           | -         |
+| **customParams**        | Custom Parameters                                                         | Object{[customParams](#custom-params)} \| `undefined`                | -         |
 
 ## Properties
 
@@ -188,6 +193,33 @@ Example:
 | --------- | -------------------------- | ------ |
 | **label** | Label for the path options | String |
 | **value** | Value for the path options | String |
+
+### Auto-save and Draft Recovery
+
+The editor includes automatic local caching and periodic background synchronization to prevent accidental loss of work during form authoring:
+
+- **Local Keystroke Caching**: Form edits are debounced (150ms) and cached to `localStorage` under `arfe_draft_<formId>` with a dirty status table (`arfe_status_<formId>`).
+- **Periodic Background Sync**: If `onAutoSave` is provided and changes are pending (`status = 1`), the editor periodically syncs the form definition in the background at the specified `autoSaveInterval` (default: 30s).
+- **Tab Change Sync**: Switching tabs (`Edit Form`, `Translations`, `Preview`) immediately triggers an auto-save sync.
+- **Save Status Indicator**: A live status indicator displays whether changes are saved (`All changes saved`), pending (`Unsaved changes`), currently saving (`Saving changes...`), or failed (`Auto-save failed. Click to retry`).
+- **Draft Recovery on Reload**: If the user reloads or closes the page with unsaved changes (`enableDraftRecovery={true}`), the editor automatically detects the local cached draft, restores the questions and form state, and notifies the user with a non-blocking alert.
+
+Example:
+
+```jsx
+<WebformEditor
+  initialValue={formJson}
+  enableAutoSave={true}
+  autoSaveInterval={30000}
+  enableDraftRecovery={true}
+  onAutoSave={async (webformJson) => {
+    await api.post(`/forms/${webformJson.id}/autosave`, webformJson);
+  }}
+  onSave={(webformJson) => {
+    api.post(`/forms/${webformJson.id}`, webformJson);
+  }}
+/>
+```
 
 ### Initial Value (optional)
 

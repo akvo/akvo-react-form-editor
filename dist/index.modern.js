@@ -2317,6 +2317,23 @@ var saveDraft = function saveDraft(formId, formState, questionGroups, options) {
     return true;
   }
 };
+var getDraft = function getDraft(formId, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  var key = getDraftKey(formId, options);
+
+  try {
+    var item = window.localStorage.getItem(key);
+
+    if (item) {
+      return JSON.parse(item);
+    }
+  } catch (e) {}
+
+  return memoryStore.get(key) || null;
+};
 var setDirtyStatus = function setDirtyStatus(formId, status, meta, options) {
   if (meta === void 0) {
     meta = {};
@@ -2343,6 +2360,25 @@ var setDirtyStatus = function setDirtyStatus(formId, status, meta, options) {
   }
 
   return payload;
+};
+var getDirtyStatus = function getDirtyStatus(formId, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  var key = getStatusKey(formId, options);
+
+  try {
+    var item = window.localStorage.getItem(key);
+
+    if (item) {
+      return JSON.parse(item);
+    }
+  } catch (e) {}
+
+  return memoryStore.get(key) || {
+    status: STATUS_SAVED
+  };
 };
 
 var formatTime = function formatTime(timestamp) {
@@ -14630,6 +14666,8 @@ var WebformEditor = function WebformEditor(_ref) {
       enableAutoSave = _ref$enableAutoSave === void 0 ? true : _ref$enableAutoSave,
       _ref$autoSaveInterval = _ref.autoSaveInterval,
       autoSaveInterval = _ref$autoSaveInterval === void 0 ? 30000 : _ref$autoSaveInterval,
+      _ref$enableDraftRecov = _ref.enableDraftRecovery,
+      enableDraftRecovery = _ref$enableDraftRecov === void 0 ? true : _ref$enableDraftRecov,
       _ref$storageKeyPrefix = _ref.storageKeyPrefix,
       storageKeyPrefix = _ref$storageKeyPrefix === void 0 ? 'arfe_' : _ref$storageKeyPrefix,
       _ref$initialValue = _ref.initialValue,
@@ -14831,23 +14869,67 @@ var WebformEditor = function WebformEditor(_ref) {
     }
   }, [defaultQuestionParam, init]);
   useEffect(function () {
-    if (!isEmpty(initialValue)) {
-      var initialData = data.toEditor(initialValue);
-      formFn.store.update(function (s) {
-        var _initialData$language;
+    var initialData = null;
+    var formId = null;
 
-        s.id = (initialData === null || initialData === void 0 ? void 0 : initialData.id) || generateId();
-        s.version = (initialData === null || initialData === void 0 ? void 0 : initialData.version) || 1;
-        s.name = (initialData === null || initialData === void 0 ? void 0 : initialData.name) || 'Unknown Form';
-        s.description = (initialData === null || initialData === void 0 ? void 0 : initialData.description) || 'Unknown Description';
-        s.languages = (initialData === null || initialData === void 0 ? void 0 : (_initialData$language = initialData.languages) === null || _initialData$language === void 0 ? void 0 : _initialData$language.filter(function (x) {
+    if (!isEmpty(initialValue)) {
+      var _initialData;
+
+      initialData = data.toEditor(initialValue);
+      formId = (_initialData = initialData) === null || _initialData === void 0 ? void 0 : _initialData.id;
+    }
+
+    var cachedDraft = enableDraftRecovery ? getDraft(formId, {
+      prefix: storageKeyPrefix
+    }) : null;
+    var dirtyStatus = enableDraftRecovery ? getDirtyStatus(formId, {
+      prefix: storageKeyPrefix
+    }) : null;
+    var hasUnsavedDraft = cachedDraft && (dirtyStatus === null || dirtyStatus === void 0 ? void 0 : dirtyStatus.status) === STATUS_DIRTY && cachedDraft.form && cachedDraft.questionGroups;
+
+    if (hasUnsavedDraft) {
+      var recoveredForm = cachedDraft.form;
+      formFn.store.update(function (s) {
+        var _recoveredForm$langua;
+
+        s.id = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.id) || formId || generateId();
+        s.version = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.version) || 1;
+        s.name = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.name) || 'Unknown Form';
+        s.description = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.description) || 'Unknown Description';
+        s.languages = (recoveredForm === null || recoveredForm === void 0 ? void 0 : (_recoveredForm$langua = recoveredForm.languages) === null || _recoveredForm$langua === void 0 ? void 0 : _recoveredForm$langua.filter(function (x) {
           return x !== 'en';
         })) || [];
-        s.defaultLanguage = (initialData === null || initialData === void 0 ? void 0 : initialData.defaultLanguage) || 'en';
-        s.translations = (initialData === null || initialData === void 0 ? void 0 : initialData.translations) || [];
+        s.defaultLanguage = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.defaultLanguage) || 'en';
+        s.translations = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.translations) || [];
+      });
+      questionGroupFn.store.update(function (s) {
+        s.questionGroups = cachedDraft.questionGroups;
+      });
+      UIStore.update(function (s) {
+        s.saveStatus = STATUS_DIRTY;
+      });
+      notification.info({
+        message: (UIText === null || UIText === void 0 ? void 0 : UIText.autoSaveDraftRecovered) || 'Draft restored from local cache'
+      });
+    } else if (!isEmpty(initialValue)) {
+      formFn.store.update(function (s) {
+        var _initialData2, _initialData3, _initialData4, _initialData5, _initialData6, _initialData6$languag, _initialData7, _initialData8;
+
+        s.id = ((_initialData2 = initialData) === null || _initialData2 === void 0 ? void 0 : _initialData2.id) || generateId();
+        s.version = ((_initialData3 = initialData) === null || _initialData3 === void 0 ? void 0 : _initialData3.version) || 1;
+        s.name = ((_initialData4 = initialData) === null || _initialData4 === void 0 ? void 0 : _initialData4.name) || 'Unknown Form';
+        s.description = ((_initialData5 = initialData) === null || _initialData5 === void 0 ? void 0 : _initialData5.description) || 'Unknown Description';
+        s.languages = ((_initialData6 = initialData) === null || _initialData6 === void 0 ? void 0 : (_initialData6$languag = _initialData6.languages) === null || _initialData6$languag === void 0 ? void 0 : _initialData6$languag.filter(function (x) {
+          return x !== 'en';
+        })) || [];
+        s.defaultLanguage = ((_initialData7 = initialData) === null || _initialData7 === void 0 ? void 0 : _initialData7.defaultLanguage) || 'en';
+        s.translations = ((_initialData8 = initialData) === null || _initialData8 === void 0 ? void 0 : _initialData8.translations) || [];
       });
       questionGroupFn.store.update(function (s) {
         s.questionGroups = initialData.questionGroups;
+      });
+      UIStore.update(function (s) {
+        s.saveStatus = STATUS_SAVED;
       });
     } else {
       var defaultForm = formFn.add();
@@ -14863,12 +14945,11 @@ var WebformEditor = function WebformEditor(_ref) {
       questionGroupFn.store.update(function (s) {
         s.questionGroups = [questionGroupFn.add({})];
       });
+      UIStore.update(function (s) {
+        s.saveStatus = STATUS_SAVED;
+      });
     }
-
-    UIStore.update(function (s) {
-      s.saveStatus = STATUS_SAVED;
-    });
-  }, [initialValue]);
+  }, [initialValue, enableDraftRecovery, storageKeyPrefix, UIText === null || UIText === void 0 ? void 0 : UIText.autoSaveDraftRecovered]);
 
   var _useAutoSave = useAutoSave({
     formId: formStore.id,
