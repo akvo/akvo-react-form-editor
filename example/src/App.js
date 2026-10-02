@@ -17,6 +17,12 @@ const App = () => {
   const [initialValue, setInitialValue] = useState(false);
   const [defaultQuestionValue, setDefaultQuestionValue] = useState(false);
 
+  const handleSave = async (updated_src) => {
+    // Simulate async API sync delay
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    setSource(updated_src);
+  };
+
   const onJsonEdit = ({ updated_src }) => {
     setSource(updated_src);
   };
@@ -47,7 +53,8 @@ const App = () => {
         </div>
 
         <WebformEditor
-          onSave={setSource}
+          onSave={handleSave}
+          autoSaveInterval={15000}
           initialValue={initialValue ? initial_value.default : source}
           defaultQuestion={defaultQuestionValue ? defaultQuestion : null}
           settingTreeDropdownValue={[
