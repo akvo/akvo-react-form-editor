@@ -188,6 +188,12 @@ const UIStaticText = {
     inputPartialRequiredCheckbox: 'Partial Required',
     inputCheckStrategyLabel: 'Check Strategy',
     inputExpandAllCheckbox: 'Expand All',
+    autoSaveStatusSaved: 'All changes saved',
+    autoSaveStatusDirty: 'Unsaved changes',
+    autoSaveStatusSaving: 'Saving changes...',
+    autoSaveStatusError: 'Auto-save failed. Click to retry',
+    autoSaveLastSavedAt: 'Saved at',
+    autoSaveDraftRecovered: 'Draft restored from local cache',
   },
 };
 

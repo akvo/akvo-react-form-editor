@@ -22,6 +22,12 @@ describe('i18n English keys (Phase 2.2)', () => {
     'inputPartialRequiredCheckbox',
     'inputCheckStrategyLabel',
     'inputExpandAllCheckbox',
+    'autoSaveStatusSaved',
+    'autoSaveStatusDirty',
+    'autoSaveStatusSaving',
+    'autoSaveStatusError',
+    'autoSaveLastSavedAt',
+    'autoSaveDraftRecovered',
   ];
 
   test.each(newKeys)('has non-empty string for key "%s"', (key) => {

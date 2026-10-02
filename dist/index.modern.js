@@ -1,6 +1,6 @@
-import React__default, { createContext, useContext, useEffect, forwardRef, createElement, useMemo, useState, useCallback } from 'react';
+import React__default, { createContext, useContext, useEffect, forwardRef, createElement, useMemo, useState, useCallback, useRef } from 'react';
 import 'antd/dist/antd.min.css';
-import { Form, Row, Col, Button, Space, Tag, Typography, Modal, Input, Card, Select, Divider, Alert, Checkbox, InputNumber, Radio, DatePicker, AutoComplete, Tooltip, Tabs, notification } from 'antd';
+import { Form, Row, Col, Button, Space, Tag, Typography, Modal, Input, Spin, Card, Select, Divider, Alert, Checkbox, InputNumber, Radio, DatePicker, AutoComplete, Tooltip, Tabs, notification } from 'antd';
 import { Store } from 'pullstate';
 import { all } from 'locale-codes';
 import uniqBy from 'lodash/uniqBy';
@@ -9,7 +9,7 @@ import { TbEditOff, TbEdit } from 'react-icons/tb';
 import { RiDeleteBin2Line, RiSave3Fill, RiSettings5Fill, RiSettings5Line } from 'react-icons/ri';
 import { BiMove, BiCopy } from 'react-icons/bi';
 import { MdOutlineAddCircleOutline, MdOutlineRemoveCircleOutline, MdOutlineArrowCircleUp, MdOutlineArrowCircleDown, MdOutlineLanguage } from 'react-icons/md';
-import { AiOutlineEyeInvisible, AiOutlineEye, AiOutlineQuestionCircle, AiOutlineCopy } from 'react-icons/ai';
+import { AiOutlineEyeInvisible, AiOutlineEye, AiOutlineCloudUpload, AiOutlineExclamationCircle, AiOutlineCheckCircle, AiOutlineQuestionCircle, AiOutlineCopy } from 'react-icons/ai';
 import { isEmpty, mapKeys, orderBy, findIndex, intersection, uniq, difference, takeRight, snakeCase as snakeCase$2, map, groupBy, maxBy, minBy, isNil } from 'lodash';
 import orderBy$1 from 'lodash/orderBy';
 import 'akvo-react-form/dist/index.css';
@@ -65,7 +65,7 @@ function _objectWithoutPropertiesLoose(source, excluded) {
   return target;
 }
 
-var styles = {"container":"arfe-container","form-definition":"arfe-form-definition","form-item-no-bottom-margin":"arfe-form-item-no-bottom-margin","input-checkbox-wrapper":"arfe-input-checkbox-wrapper","button-icon":"arfe-button-icon","reorder-wrapper":"arfe-reorder-wrapper","reorder-button":"arfe-reorder-button","select-dropdown":"arfe-select-dropdown","tabs-wrapper":"arfe-tabs-wrapper","tabs-wrapper-sticky":"arfe-tabs-wrapper-sticky","right-tabs":"arfe-right-tabs","tab-pane-name-icon":"arfe-tab-pane-name-icon","question-group-title":"arfe-question-group-title","space-align-right":"arfe-space-align-right","space-align-left":"arfe-space-align-left","space-vertical-align-left":"arfe-space-vertical-align-left","space-vertical-align-right":"arfe-space-vertical-align-right","more-question-setting-text":"arfe-more-question-setting-text","dependant-list-box":"arfe-dependant-list-box","tags":"arfe-tags","tags-active":"arfe-tags-active","translation-form-item":"arfe-translation-form-item","translation-form-item-card":"arfe-translation-form-item-card","field-error-wrapper":"arfe-field-error-wrapper","geo-rule-table":"arfe-geo-rule-table","geo-rule-header":"arfe-geo-rule-header","geo-rule-group":"arfe-geo-rule-group","geo-rule-row":"arfe-geo-rule-row","geo-rule-name":"arfe-geo-rule-name","geo-rule-limit-stack":"arfe-geo-rule-limit-stack"};
+var styles = {"container":"arfe-container","form-definition":"arfe-form-definition","form-item-no-bottom-margin":"arfe-form-item-no-bottom-margin","input-checkbox-wrapper":"arfe-input-checkbox-wrapper","button-icon":"arfe-button-icon","reorder-wrapper":"arfe-reorder-wrapper","reorder-button":"arfe-reorder-button","select-dropdown":"arfe-select-dropdown","tabs-wrapper":"arfe-tabs-wrapper","tabs-wrapper-sticky":"arfe-tabs-wrapper-sticky","right-tabs":"arfe-right-tabs","tab-pane-name-icon":"arfe-tab-pane-name-icon","question-group-title":"arfe-question-group-title","space-align-right":"arfe-space-align-right","space-align-left":"arfe-space-align-left","space-vertical-align-left":"arfe-space-vertical-align-left","space-vertical-align-right":"arfe-space-vertical-align-right","more-question-setting-text":"arfe-more-question-setting-text","dependant-list-box":"arfe-dependant-list-box","tags":"arfe-tags","tags-active":"arfe-tags-active","translation-form-item":"arfe-translation-form-item","translation-form-item-card":"arfe-translation-form-item-card","field-error-wrapper":"arfe-field-error-wrapper","geo-rule-table":"arfe-geo-rule-table","geo-rule-header":"arfe-geo-rule-header","geo-rule-group":"arfe-geo-rule-group","geo-rule-row":"arfe-geo-rule-row","geo-rule-name":"arfe-geo-rule-name","geo-rule-limit-stack":"arfe-geo-rule-limit-stack","save-status-indicator":"arfe-save-status-indicator","save-status-clickable":"arfe-save-status-clickable"};
 
 var FormWrapper = function FormWrapper(_ref) {
   var children = _ref.children;
@@ -265,7 +265,13 @@ var UIStaticText = {
     inputEntityParentIdLabel: 'Entity Parent ID',
     inputPartialRequiredCheckbox: 'Partial Required',
     inputCheckStrategyLabel: 'Check Strategy',
-    inputExpandAllCheckbox: 'Expand All'
+    inputExpandAllCheckbox: 'Expand All',
+    autoSaveStatusSaved: 'All changes saved',
+    autoSaveStatusDirty: 'Unsaved changes',
+    autoSaveStatusSaving: 'Saving changes...',
+    autoSaveStatusError: 'Auto-save failed. Click to retry',
+    autoSaveLastSavedAt: 'Saved at',
+    autoSaveDraftRecovered: 'Draft restored from local cache'
   }
 };
 
@@ -499,7 +505,15 @@ var UIStore = new Store({
   activeTranslationQuestionGroups: [],
   activeEditTranslationQuestionGroups: [],
   activeEditTranslationQuestions: [],
-  hostParams: {}
+  hostParams: {},
+  saveStatus: 0,
+  lastSaved: null,
+  autoSaveConfig: {
+    enabled: true,
+    interval: 30000,
+    storageKeyPrefix: 'arfe_',
+    enableDraftRecovery: true
+  }
 });
 var ErrorStore = new Store({
   questionGroupErrors: [],
@@ -2248,6 +2262,201 @@ var SettingAddons = function SettingAddons(_ref) {
     defaultValue: addonAfter,
     maxLength: 50
   }))));
+};
+
+var STATUS_SAVED = 0;
+var STATUS_DIRTY = 1;
+var STATUS_SAVING = 2;
+var STATUS_ERROR = 3;
+var DEFAULT_PREFIX = 'arfe_';
+var memoryStore = new Map();
+
+var getPrefix = function getPrefix(options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  return options.prefix || DEFAULT_PREFIX;
+};
+
+var getDraftKey = function getDraftKey(formId, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  return getPrefix(options) + "draft_" + (formId || 'default');
+};
+
+var getStatusKey = function getStatusKey(formId, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  return getPrefix(options) + "status_" + (formId || 'default');
+};
+
+var saveDraft = function saveDraft(formId, formState, questionGroups, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  var payload = {
+    form: formState,
+    questionGroups: questionGroups,
+    updatedAt: Date.now()
+  };
+  var key = getDraftKey(formId, options);
+  var serialized = JSON.stringify(payload);
+
+  try {
+    window.localStorage.setItem(key, serialized);
+    memoryStore.set(key, payload);
+    return true;
+  } catch (e) {
+    memoryStore.set(key, payload);
+    return true;
+  }
+};
+var getDraft = function getDraft(formId, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  var key = getDraftKey(formId, options);
+
+  try {
+    var item = window.localStorage.getItem(key);
+
+    if (item) {
+      return JSON.parse(item);
+    }
+  } catch (e) {}
+
+  return memoryStore.get(key) || null;
+};
+var setDirtyStatus = function setDirtyStatus(formId, status, meta, options) {
+  if (meta === void 0) {
+    meta = {};
+  }
+
+  if (options === void 0) {
+    options = {};
+  }
+
+  var key = getStatusKey(formId, options);
+
+  var payload = _extends({
+    formId: formId,
+    status: status
+  }, meta, {
+    updatedAt: Date.now()
+  });
+
+  try {
+    window.localStorage.setItem(key, JSON.stringify(payload));
+    memoryStore.set(key, payload);
+  } catch (e) {
+    memoryStore.set(key, payload);
+  }
+
+  return payload;
+};
+var getDirtyStatus = function getDirtyStatus(formId, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
+  var key = getStatusKey(formId, options);
+
+  try {
+    var item = window.localStorage.getItem(key);
+
+    if (item) {
+      return JSON.parse(item);
+    }
+  } catch (e) {}
+
+  return memoryStore.get(key) || {
+    status: STATUS_SAVED
+  };
+};
+
+var formatTime = function formatTime(timestamp) {
+  if (!timestamp) {
+    return '';
+  }
+
+  var date = new Date(timestamp);
+  var hours = String(date.getHours()).padStart(2, '0');
+  var minutes = String(date.getMinutes()).padStart(2, '0');
+  var seconds = String(date.getSeconds()).padStart(2, '0');
+  return hours + ":" + minutes + ":" + seconds;
+};
+
+var SaveStatusIndicator = function SaveStatusIndicator(_ref) {
+  var onRetry = _ref.onRetry;
+
+  var _UIStore$useState = UIStore.useState(function (s) {
+    return {
+      saveStatus: s.saveStatus,
+      lastSaved: s.lastSaved,
+      UIText: s.UIText
+    };
+  }),
+      saveStatus = _UIStore$useState.saveStatus,
+      lastSaved = _UIStore$useState.lastSaved,
+      UIText = _UIStore$useState.UIText;
+
+  var autoSaveStatusSaved = UIText.autoSaveStatusSaved,
+      autoSaveStatusDirty = UIText.autoSaveStatusDirty,
+      autoSaveStatusSaving = UIText.autoSaveStatusSaving,
+      autoSaveStatusError = UIText.autoSaveStatusError,
+      autoSaveLastSavedAt = UIText.autoSaveLastSavedAt;
+
+  if (saveStatus === STATUS_SAVING) {
+    return /*#__PURE__*/React__default.createElement(Tag, {
+      color: "processing",
+      className: styles['save-status-indicator']
+    }, /*#__PURE__*/React__default.createElement(Space, {
+      size: 4
+    }, /*#__PURE__*/React__default.createElement(Spin, {
+      size: "small"
+    }), /*#__PURE__*/React__default.createElement("span", null, autoSaveStatusSaving || 'Saving changes...')));
+  }
+
+  if (saveStatus === STATUS_DIRTY) {
+    return /*#__PURE__*/React__default.createElement(Tag, {
+      color: "warning",
+      className: styles['save-status-indicator']
+    }, /*#__PURE__*/React__default.createElement(Space, {
+      size: 4
+    }, /*#__PURE__*/React__default.createElement(AiOutlineCloudUpload, null), /*#__PURE__*/React__default.createElement("span", null, autoSaveStatusDirty || 'Unsaved changes')));
+  }
+
+  if (saveStatus === STATUS_ERROR) {
+    return /*#__PURE__*/React__default.createElement(Tag, {
+      color: "error",
+      className: styles['save-status-indicator'] + " " + styles['save-status-clickable'],
+      onClick: onRetry,
+      style: {
+        cursor: 'pointer'
+      }
+    }, /*#__PURE__*/React__default.createElement(Space, {
+      size: 4
+    }, /*#__PURE__*/React__default.createElement(AiOutlineExclamationCircle, null), /*#__PURE__*/React__default.createElement("span", null, autoSaveStatusError || 'Auto-save failed. Click to retry')));
+  }
+
+  var savedLabel = lastSaved ? (autoSaveLastSavedAt || 'Saved at') + " " + formatTime(lastSaved) : autoSaveStatusSaved || 'All changes saved';
+  return /*#__PURE__*/React__default.createElement(Tag, {
+    color: "default",
+    className: styles['save-status-indicator']
+  }, /*#__PURE__*/React__default.createElement(Space, {
+    size: 4
+  }, /*#__PURE__*/React__default.createElement(AiOutlineCheckCircle, {
+    style: {
+      color: '#52c41a'
+    }
+  }), /*#__PURE__*/React__default.createElement("span", null, savedLabel)));
 };
 
 var _excluded$2 = ["response_key"];
@@ -14181,9 +14390,286 @@ var QuestionGroupDefinition = function QuestionGroupDefinition(_ref) {
   }, alertDeleteQuestionGroup));
 };
 
+// A type of promise-like that resolves synchronously and supports only one observer
+
+const _iteratorSymbol = /*#__PURE__*/ typeof Symbol !== "undefined" ? (Symbol.iterator || (Symbol.iterator = Symbol("Symbol.iterator"))) : "@@iterator";
+
+const _asyncIteratorSymbol = /*#__PURE__*/ typeof Symbol !== "undefined" ? (Symbol.asyncIterator || (Symbol.asyncIterator = Symbol("Symbol.asyncIterator"))) : "@@asyncIterator";
+
+// Asynchronously call a function and send errors to recovery continuation
+function _catch(body, recover) {
+	try {
+		var result = body();
+	} catch(e) {
+		return recover(e);
+	}
+	if (result && result.then) {
+		return result.then(void 0, recover);
+	}
+	return result;
+}
+
+var DEFAULT_INTERVAL = 30000;
+var DEBOUNCE_DELAY = 150;
+
+var useAutoSave = function useAutoSave(_temp) {
+  var _ref = _temp === void 0 ? {} : _temp,
+      formId = _ref.formId,
+      onSave = _ref.onSave,
+      onAutoSave = _ref.onAutoSave,
+      _ref$enableAutoSave = _ref.enableAutoSave,
+      enableAutoSave = _ref$enableAutoSave === void 0 ? true : _ref$enableAutoSave,
+      _ref$autoSaveInterval = _ref.autoSaveInterval,
+      autoSaveInterval = _ref$autoSaveInterval === void 0 ? DEFAULT_INTERVAL : _ref$autoSaveInterval,
+      _ref$storageKeyPrefix = _ref.storageKeyPrefix,
+      storageKeyPrefix = _ref$storageKeyPrefix === void 0 ? 'arfe_' : _ref$storageKeyPrefix;
+
+  var formStore = formFn.store.useState(function (s) {
+    return s;
+  });
+  var questionGroups = questionGroupFn.store.useState(function (s) {
+    return s.questionGroups;
+  });
+  var saveStatus = UIStore.useState(function (s) {
+    return s.saveStatus;
+  });
+  var isMountedRef = useRef(false);
+  var lastFormIdRef = useRef(formId);
+  var debounceTimerRef = useRef(null);
+  var intervalTimerRef = useRef(null);
+  var lastMutationTimeRef = useRef(0);
+  var latestStateRef = useRef({
+    formStore: formStore,
+    questionGroups: questionGroups,
+    formId: formId
+  });
+  latestStateRef.current = {
+    formStore: formStore,
+    questionGroups: questionGroups,
+    formId: formId
+  };
+  var flushDraft = useCallback(function () {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    var _latestStateRef$curre = latestStateRef.current,
+        currentForm = _latestStateRef$curre.formStore,
+        currentGroups = _latestStateRef$curre.questionGroups,
+        currentId = _latestStateRef$curre.formId;
+
+    if (currentId) {
+      saveDraft(currentId, currentForm, currentGroups, {
+        prefix: storageKeyPrefix
+      });
+    }
+  }, [storageKeyPrefix]);
+  var triggerSync = useCallback(function (source) {
+    if (source === void 0) {
+      source = 'auto';
+    }
+
+    try {
+      if (!enableAutoSave && source !== 'manual') {
+        return Promise.resolve({
+          success: false,
+          reason: 'disabled'
+        });
+      }
+
+      var currentStatus = UIStore.getRawState().saveStatus;
+
+      if (currentStatus === STATUS_SAVED && source !== 'manual') {
+        return Promise.resolve({
+          success: true,
+          reason: 'clean'
+        });
+      }
+
+      var errors = ErrorStore.getRawState();
+      var hasErrors = errors.questionGroupErrors && errors.questionGroupErrors.length > 0 || errors.questionErrors && errors.questionErrors.length > 0;
+
+      if (hasErrors) {
+        flushDraft();
+        return Promise.resolve({
+          success: false,
+          reason: 'validation_error'
+        });
+      }
+
+      flushDraft();
+      var requestTimestamp = Date.now();
+      UIStore.update(function (s) {
+        s.saveStatus = STATUS_SAVING;
+      });
+      setDirtyStatus(formId, STATUS_SAVING, {
+        lastSaveRequestTimestamp: requestTimestamp
+      }, {
+        prefix: storageKeyPrefix
+      });
+      var payload = data.toWebform(latestStateRef.current.formStore, latestStateRef.current.questionGroups);
+      return Promise.resolve(_catch(function () {
+        function _temp3() {
+          var resolvedTime = Date.now();
+
+          if (lastMutationTimeRef.current <= requestTimestamp) {
+            UIStore.update(function (s) {
+              s.saveStatus = STATUS_SAVED;
+              s.lastSaved = resolvedTime;
+            });
+            setDirtyStatus(formId, STATUS_SAVED, {
+              lastSaved: resolvedTime
+            }, {
+              prefix: storageKeyPrefix
+            });
+          } else {
+            UIStore.update(function (s) {
+              s.saveStatus = STATUS_DIRTY;
+              s.lastSaved = resolvedTime;
+            });
+            setDirtyStatus(formId, STATUS_DIRTY, {
+              lastSaved: resolvedTime
+            }, {
+              prefix: storageKeyPrefix
+            });
+          }
+
+          return {
+            success: true
+          };
+        }
+
+        var result;
+
+        if (source !== 'manual' && onAutoSave) {
+          result = onAutoSave(payload, {
+            isAutoSave: true,
+            source: source
+          });
+        } else if (onSave) {
+          result = onSave(payload, {
+            isAutoSave: source !== 'manual',
+            source: source
+          });
+        } else if (onAutoSave) {
+          result = onAutoSave(payload, {
+            isAutoSave: source !== 'manual',
+            source: source
+          });
+        }
+
+        var _temp2 = function () {
+          if (result && typeof result.then === 'function') {
+            return Promise.resolve(result).then(function () {});
+          }
+        }();
+
+        return _temp2 && _temp2.then ? _temp2.then(_temp3) : _temp3(_temp2);
+      }, function (err) {
+        UIStore.update(function (s) {
+          s.saveStatus = STATUS_ERROR;
+        });
+        setDirtyStatus(formId, STATUS_ERROR, {
+          error: err.message
+        }, {
+          prefix: storageKeyPrefix
+        });
+        return {
+          success: false,
+          error: err
+        };
+      }));
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }, [enableAutoSave, formId, onAutoSave, onSave, storageKeyPrefix, flushDraft]);
+  useEffect(function () {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      lastFormIdRef.current = formId;
+      return;
+    }
+
+    if (lastFormIdRef.current !== formId) {
+      lastFormIdRef.current = formId;
+      return;
+    }
+
+    lastMutationTimeRef.current = Date.now();
+    UIStore.update(function (s) {
+      s.saveStatus = STATUS_DIRTY;
+    });
+    setDirtyStatus(formId, STATUS_DIRTY, {
+      lastUpdated: lastMutationTimeRef.current
+    }, {
+      prefix: storageKeyPrefix
+    });
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(function () {
+      saveDraft(formId, formStore, questionGroups, {
+        prefix: storageKeyPrefix
+      });
+      debounceTimerRef.current = null;
+    }, DEBOUNCE_DELAY);
+  }, [formStore, questionGroups, formId, storageKeyPrefix]);
+  useEffect(function () {
+    if (!enableAutoSave || autoSaveInterval <= 0) {
+      return;
+    }
+
+    intervalTimerRef.current = setInterval(function () {
+      var currentStatus = UIStore.getRawState().saveStatus;
+
+      if (currentStatus === STATUS_DIRTY) {
+        triggerSync('interval');
+      }
+    }, autoSaveInterval);
+    return function () {
+      if (intervalTimerRef.current) {
+        clearInterval(intervalTimerRef.current);
+      }
+    };
+  }, [enableAutoSave, autoSaveInterval, triggerSync]);
+  useEffect(function () {
+    var handleBeforeUnload = function handleBeforeUnload(e) {
+      if (UIStore.getRawState().saveStatus === STATUS_DIRTY) {
+        flushDraft();
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return function () {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      flushDraft();
+    };
+  }, [flushDraft]);
+  return {
+    saveStatus: saveStatus,
+    triggerSync: triggerSync,
+    flushDraft: flushDraft
+  };
+};
+
 var WebformEditor = function WebformEditor(_ref) {
   var _ref$onSave = _ref.onSave,
       onSave = _ref$onSave === void 0 ? false : _ref$onSave,
+      _ref$onAutoSave = _ref.onAutoSave,
+      onAutoSave = _ref$onAutoSave === void 0 ? null : _ref$onAutoSave,
+      _ref$enableAutoSave = _ref.enableAutoSave,
+      enableAutoSave = _ref$enableAutoSave === void 0 ? true : _ref$enableAutoSave,
+      _ref$autoSaveInterval = _ref.autoSaveInterval,
+      autoSaveInterval = _ref$autoSaveInterval === void 0 ? 30000 : _ref$autoSaveInterval,
+      _ref$enableDraftRecov = _ref.enableDraftRecovery,
+      enableDraftRecovery = _ref$enableDraftRecov === void 0 ? true : _ref$enableDraftRecov,
+      _ref$storageKeyPrefix = _ref.storageKeyPrefix,
+      storageKeyPrefix = _ref$storageKeyPrefix === void 0 ? 'arfe_' : _ref$storageKeyPrefix,
       _ref$initialValue = _ref.initialValue,
       initialValue = _ref$initialValue === void 0 ? null : _ref$initialValue,
       _ref$settingTreeDropd = _ref.settingTreeDropdownValue,
@@ -14383,23 +14869,67 @@ var WebformEditor = function WebformEditor(_ref) {
     }
   }, [defaultQuestionParam, init]);
   useEffect(function () {
-    if (!isEmpty(initialValue)) {
-      var initialData = data.toEditor(initialValue);
-      formFn.store.update(function (s) {
-        var _initialData$language;
+    var initialData = null;
+    var formId = null;
 
-        s.id = (initialData === null || initialData === void 0 ? void 0 : initialData.id) || generateId();
-        s.version = (initialData === null || initialData === void 0 ? void 0 : initialData.version) || 1;
-        s.name = (initialData === null || initialData === void 0 ? void 0 : initialData.name) || 'Unknown Form';
-        s.description = (initialData === null || initialData === void 0 ? void 0 : initialData.description) || 'Unknown Description';
-        s.languages = (initialData === null || initialData === void 0 ? void 0 : (_initialData$language = initialData.languages) === null || _initialData$language === void 0 ? void 0 : _initialData$language.filter(function (x) {
+    if (!isEmpty(initialValue)) {
+      var _initialData;
+
+      initialData = data.toEditor(initialValue);
+      formId = (_initialData = initialData) === null || _initialData === void 0 ? void 0 : _initialData.id;
+    }
+
+    var cachedDraft = enableDraftRecovery ? getDraft(formId, {
+      prefix: storageKeyPrefix
+    }) : null;
+    var dirtyStatus = enableDraftRecovery ? getDirtyStatus(formId, {
+      prefix: storageKeyPrefix
+    }) : null;
+    var hasUnsavedDraft = cachedDraft && (dirtyStatus === null || dirtyStatus === void 0 ? void 0 : dirtyStatus.status) === STATUS_DIRTY && cachedDraft.form && cachedDraft.questionGroups;
+
+    if (hasUnsavedDraft) {
+      var recoveredForm = cachedDraft.form;
+      formFn.store.update(function (s) {
+        var _recoveredForm$langua;
+
+        s.id = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.id) || formId || generateId();
+        s.version = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.version) || 1;
+        s.name = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.name) || 'Unknown Form';
+        s.description = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.description) || 'Unknown Description';
+        s.languages = (recoveredForm === null || recoveredForm === void 0 ? void 0 : (_recoveredForm$langua = recoveredForm.languages) === null || _recoveredForm$langua === void 0 ? void 0 : _recoveredForm$langua.filter(function (x) {
           return x !== 'en';
         })) || [];
-        s.defaultLanguage = (initialData === null || initialData === void 0 ? void 0 : initialData.defaultLanguage) || 'en';
-        s.translations = (initialData === null || initialData === void 0 ? void 0 : initialData.translations) || [];
+        s.defaultLanguage = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.defaultLanguage) || 'en';
+        s.translations = (recoveredForm === null || recoveredForm === void 0 ? void 0 : recoveredForm.translations) || [];
+      });
+      questionGroupFn.store.update(function (s) {
+        s.questionGroups = cachedDraft.questionGroups;
+      });
+      UIStore.update(function (s) {
+        s.saveStatus = STATUS_DIRTY;
+      });
+      notification.info({
+        message: (UIText === null || UIText === void 0 ? void 0 : UIText.autoSaveDraftRecovered) || 'Draft restored from local cache'
+      });
+    } else if (!isEmpty(initialValue)) {
+      formFn.store.update(function (s) {
+        var _initialData2, _initialData3, _initialData4, _initialData5, _initialData6, _initialData6$languag, _initialData7, _initialData8;
+
+        s.id = ((_initialData2 = initialData) === null || _initialData2 === void 0 ? void 0 : _initialData2.id) || generateId();
+        s.version = ((_initialData3 = initialData) === null || _initialData3 === void 0 ? void 0 : _initialData3.version) || 1;
+        s.name = ((_initialData4 = initialData) === null || _initialData4 === void 0 ? void 0 : _initialData4.name) || 'Unknown Form';
+        s.description = ((_initialData5 = initialData) === null || _initialData5 === void 0 ? void 0 : _initialData5.description) || 'Unknown Description';
+        s.languages = ((_initialData6 = initialData) === null || _initialData6 === void 0 ? void 0 : (_initialData6$languag = _initialData6.languages) === null || _initialData6$languag === void 0 ? void 0 : _initialData6$languag.filter(function (x) {
+          return x !== 'en';
+        })) || [];
+        s.defaultLanguage = ((_initialData7 = initialData) === null || _initialData7 === void 0 ? void 0 : _initialData7.defaultLanguage) || 'en';
+        s.translations = ((_initialData8 = initialData) === null || _initialData8 === void 0 ? void 0 : _initialData8.translations) || [];
       });
       questionGroupFn.store.update(function (s) {
         s.questionGroups = initialData.questionGroups;
+      });
+      UIStore.update(function (s) {
+        s.saveStatus = STATUS_SAVED;
       });
     } else {
       var defaultForm = formFn.add();
@@ -14415,8 +14945,21 @@ var WebformEditor = function WebformEditor(_ref) {
       questionGroupFn.store.update(function (s) {
         s.questionGroups = [questionGroupFn.add({})];
       });
+      UIStore.update(function (s) {
+        s.saveStatus = STATUS_SAVED;
+      });
     }
-  }, [initialValue]);
+  }, [initialValue, enableDraftRecovery, storageKeyPrefix, UIText === null || UIText === void 0 ? void 0 : UIText.autoSaveDraftRecovered]);
+
+  var _useAutoSave = useAutoSave({
+    formId: formStore.id,
+    onSave: onSave || null,
+    onAutoSave: onAutoSave || null,
+    enableAutoSave: enableAutoSave,
+    autoSaveInterval: autoSaveInterval,
+    storageKeyPrefix: storageKeyPrefix
+  }),
+      triggerSync = _useAutoSave.triggerSync;
 
   var handleTabsOnChange = function handleTabsOnChange(e) {
     UIStore.update(function (s) {
@@ -14424,6 +14967,10 @@ var WebformEditor = function WebformEditor(_ref) {
         tab: e
       });
     });
+
+    if (enableAutoSave) {
+      triggerSync('tab_change');
+    }
   };
 
   var handleShowFormSetting = function handleShowFormSetting(e) {
@@ -14434,16 +14981,18 @@ var WebformEditor = function WebformEditor(_ref) {
   };
 
   var handleSave = function handleSave() {
-    if (onSave) {
+    try {
       if (questionGroupErrors.length || questionErrors.length) {
         notification.error({
           message: validationErrorTitle,
           description: validationErrorDescription
         });
-        return;
+        return Promise.resolve();
       }
 
-      onSave(data.toWebform(formStore, questionGroups));
+      return Promise.resolve(triggerSync('manual')).then(function () {});
+    } catch (e) {
+      return Promise.reject(e);
     }
   };
 
@@ -14474,7 +15023,11 @@ var WebformEditor = function WebformEditor(_ref) {
     onChange: handleTabsOnChange,
     tabBarExtraContent: /*#__PURE__*/React__default.createElement("div", {
       className: styles['right-tabs']
-    }, /*#__PURE__*/React__default.createElement(Space, null, /*#__PURE__*/React__default.createElement(Tag, {
+    }, /*#__PURE__*/React__default.createElement(Space, null, enableAutoSave && /*#__PURE__*/React__default.createElement(SaveStatusIndicator, {
+      onRetry: function onRetry() {
+        return triggerSync('manual');
+      }
+    }), /*#__PURE__*/React__default.createElement(Tag, {
       style: {
         margin: 0
       }

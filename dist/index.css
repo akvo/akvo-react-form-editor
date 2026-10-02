@@ -179,3 +179,21 @@
 .arfe-geo-rule-limit-stack > * + * {
   margin-top: 8px;
 }
+
+.arfe-save-status-indicator {
+  margin: 0 !important;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  padding: 3px 8px;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  transition: all 0.3s ease;
+}
+
+.arfe-save-status-clickable:hover {
+  opacity: 0.85;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+}
