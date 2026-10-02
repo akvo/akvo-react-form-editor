@@ -9,7 +9,9 @@ import {
   QuestionGroupDefinition,
   FormTranslations,
 } from './components';
-import { ButtonWithIcon } from './support';
+import { ButtonWithIcon, SaveStatusIndicator } from './support';
+import useAutoSave from './hooks/useAutoSave';
+import { STATUS_SAVED } from './lib/storage';
 import {
   UIStore,
   formFn,
@@ -26,6 +28,10 @@ import { VscPreview } from 'react-icons/vsc';
 
 const WebformEditor = ({
   onSave = false,
+  onAutoSave = null,
+  enableAutoSave = true,
+  autoSaveInterval = 30000,
+  storageKeyPrefix = 'arfe_',
   initialValue = null,
   settingTreeDropdownValue = [{ label: null, value: null }],
   settingCascadeURL = [{ name: null, endpoint: null, initial: 0, list: false }],
@@ -224,7 +230,19 @@ const WebformEditor = ({
         s.questionGroups = [questionGroupFn.add({})];
       });
     }
+    UIStore.update((s) => {
+      s.saveStatus = STATUS_SAVED;
+    });
   }, [initialValue]);
+
+  const { triggerSync } = useAutoSave({
+    formId: formStore.id,
+    onSave: onSave || null,
+    onAutoSave: onAutoSave || null,
+    enableAutoSave,
+    autoSaveInterval,
+    storageKeyPrefix,
+  });
 
   const handleTabsOnChange = (e) => {
     UIStore.update((s) => {
@@ -233,6 +251,9 @@ const WebformEditor = ({
         tab: e,
       };
     });
+    if (enableAutoSave) {
+      triggerSync('tab_change');
+    }
   };
 
   const handleShowFormSetting = (e) => {
@@ -242,18 +263,15 @@ const WebformEditor = ({
     });
   };
 
-  const handleSave = () => {
-    if (onSave) {
-      // check error before save
-      if (questionGroupErrors.length || questionErrors.length) {
-        notification.error({
-          message: validationErrorTitle,
-          description: validationErrorDescription,
-        });
-        return;
-      }
-      onSave(data.toWebform(formStore, questionGroups));
+  const handleSave = async () => {
+    if (questionGroupErrors.length || questionErrors.length) {
+      notification.error({
+        message: validationErrorTitle,
+        description: validationErrorDescription,
+      });
+      return;
     }
+    await triggerSync('manual');
   };
 
   const questions = questionGroups.reduce(
@@ -293,6 +311,9 @@ const WebformEditor = ({
           tabBarExtraContent={
             <div className={styles['right-tabs']}>
               <Space>
+                {enableAutoSave && (
+                  <SaveStatusIndicator onRetry={() => triggerSync('manual')} />
+                )}
                 <Tag style={{ margin: 0 }}>
                   {questions.length} {questionCount}
                 </Tag>
