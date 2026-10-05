@@ -86,4 +86,19 @@ describe('store.questionType', () => {
       expect(group.questions[0].required).toBe(false);
     });
   });
+
+  describe('UIStore auto-save defaults', () => {
+    test('UIStore has default saveStatus and autoSaveConfig', () => {
+      const { UIStore } = require('../store');
+      const state = UIStore.getRawState();
+      expect(state.saveStatus).toBe(0);
+      expect(state.lastSaved).toBeNull();
+      expect(state.autoSaveConfig).toEqual({
+        enabled: true,
+        interval: 30000,
+        storageKeyPrefix: 'arfe_',
+        enableDraftRecovery: true,
+      });
+    });
+  });
 });

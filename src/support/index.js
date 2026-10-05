@@ -5,3 +5,4 @@ export { default as ButtonWithIcon } from './ButtonWithIcon';
 export { default as TranslationFormItem } from './TranslationFormItem';
 export { default as AlertPopup } from './AlertPopup';
 export { default as SettingAddons } from './SettingAddons';
+export { default as SaveStatusIndicator } from './SaveStatusIndicator';
